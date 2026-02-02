@@ -15,7 +15,6 @@
 /* 2. 전체 배경 및 기본 스타일 */
 body {
     font-family: "Noto Serif KR", serif;
-    /* 사용자가 업로드한 배경 이미지 적용 */
     background-image: url('../bg1.png'); 
     background-size: cover;
     background-position: center;
@@ -27,7 +26,7 @@ body {
 
 /* 3. 게임 보드 컨테이너 (반투명 레이어) */
 #app {
-    background: rgba(18, 20, 15, 0.85); 
+    background: rgba(18, 20, 15, 0.65); 
     padding: 30px;
     border: 1px solid #4a4d44;
     border-radius: 5px;
@@ -156,6 +155,7 @@ body {
 .modal-content { background-color: #1a1c16; color: #e0d7c6; border: 1px solid #4a4d44; }
 .modal-title { font-family: "Grandiflora One"; }
 .modal-body { font-family: "Noto Serif KR"; line-height: 1.6; }
+
 
 
 
