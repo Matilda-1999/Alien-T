@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Gates Game</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+        }
+        .game-container {
+            width: 800px;  /* 게임 영역의 너비 */
+            height: 600px; /* 게임 영역의 높이 */
+            overflow: hidden;
+            position: relative;
+            border: 5px solid #2c3e50;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        iframe {
+            position: absolute;
+            /* plays.org 페이지의 레이아웃에 맞춰 조정된 수치입니다 */
+            top: -245px; 
+            left: -100px;
+            width: 1200px;
+            height: 1500px;
+            border: none;
+        }
+        .info {
+            margin-top: 15px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <iframe src="https://plays.org/circuitgates/" scrolling="no"></iframe>
+    </div>
+
+    <div class="info">
+        <p>Circuit Gates Puzzle - Powered by <a href="https://plays.org/circuitgates/" target="_blank">Plays.org</a></p>
+    </div>
+
+</body>
+</html>
