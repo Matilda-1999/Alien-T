@@ -8,7 +8,7 @@
 .noto-serif-kr {
   font-family: "Noto Serif KR", serif;
   font-optical-sizing: auto;
-  font-weight: 400; /* 기본 두께 */
+  font-weight: 400;
   font-style: normal;
 }
 
@@ -41,15 +41,14 @@ body {
 .tile {
     height: min(100px, calc(100vw/15));
     width: min(100px, calc(100vw/15));
-    background-color: #2a2d24 !important; 
+    background-color: #1a1c16 !important; 
     position: relative;
     z-index: 0;
     margin: min(5px, calc(5vw/15));
     display: inline-block;
     transform-origin: 50% 50%;
-    border: 1px solid #3e4137;
+    border: 1px solid #333;
 }
-
 
 .tile-movable {
     border-radius: 50%;
@@ -63,11 +62,10 @@ body {
     transform: translate(-49.625%, -49.625%);
     width: 100%;
     height: 100%;
-    border: 3px solid #b4a078 !important;
+    border: 3px solid #b4a078 !important; /* 황동색 테두리 */
     border-radius: 50%;
     z-index: 1;
 }
-
 
 .tile-immovable::after {
     content: '';
@@ -82,9 +80,17 @@ body {
 }
 
 /* 5. 회로 선(Node) 및 에너지 흐름 디자인 */
-.i-node, .lv-node, .lh-node, .circle-node, .start-node, .end-node, .portal-node {
-    background-color: #d4af37 !important; 
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.6); /* 빛나는 효과 */
+/* 시작점과 끝점은 항상 주황색으로 발광 */
+.start-node, .end-node {
+    background-color: #FF4500 !important;
+    box-shadow: 0 0 20px #FF4500;
+    z-index: 5;
+}
+
+/* 일반 노드 스타일 */
+.i-node, .lv-node, .lh-node, .circle-node, .portal-node {
+    background-color: #d4af37 !important; /* 기본 금색 */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
     z-index: 1;
 }
 
@@ -99,7 +105,7 @@ body {
     z-index: 2;
 }
 
-.start-node, .end-node, .portal-node {
+.portal-node {
     height: 50%; width: 20%; position: absolute; top: 48%; left: 40%;
 }
 
@@ -125,7 +131,7 @@ body {
 }
 
 .portalsymbol.active {
-    color: #1a1c16 !important; /* 에너지 연결 시 기호 색상 반전 */
+    color: #1a1c16 !important; /* 연결 시 색상 반전 */
 }
 
 /* 7. 기타 레이아웃 */
@@ -136,4 +142,3 @@ body {
 .modal-content { background-color: #1a1c16; color: #e0d7c6; border: 1px solid #4a4d44; }
 .modal-title { font-family: "Grandiflora One"; }
 .modal-body { font-family: "Noto Serif KR"; line-height: 1.6; }
-
