@@ -621,24 +621,38 @@ export default {
 		// ⬤■▲◆★+⬟▼  ♣♦♠♥
 		
 		return { grid, tileCode, getNodeClass, getMovableClass, shapes, getColour, rotate, colours, checkWinStatus };
-	},
-	template: `<div>
-		<h2 :style="'visibility: ' + (checkWinStatus() ? 'visible' : 'hidden') + ';'">You solved the puzzle!</h2>
-		<div v-for="(row, rowIndex) in grid">
-			<div style="display: inline-block" v-for="(tile, colIndex) in row">
-				<div :class="'tile ' + getMovableClass(tile[2])" :style="'rotate: '+tile[1]*90+'deg;'" v-if="tile.length != 0" @click="rotate(tile, rowIndex, colIndex)">
-					<div :style="'background-color: '+getColour(tile, rowIndex, colIndex)+';'" :class="getNodeClass(tile[0])"></div>
-					<div v-if="tile[0] == 'L'" :style="'background-color: '+getColour(tile, rowIndex, colIndex)+';'" :class="getNodeClass(tile[0],true)"></div>
-					<div v-if="tile[0] != 'X'" :class="(tile[0] === 'P' ? 'bigcircle-node' : 'circle-node')" :style="'background-color: '+(tile[0] == 'E' ? colours[tile[4]] : getColour(tile, rowIndex, colIndex))+'; rotate: '+tile[1]*(-90)+'deg;'"></div>
-					<div v-if="tile[0] == 'P'" :class="'portalsymbol' + (getColour(tile, rowIndex, colIndex) !== '' ? ' active' : '')" :style="'rotate: '+tile[1]*(-90)+'deg;'">
-						{{shapes[tile[4]]}}
-					</div>
-				</div>
-			</div>
-			<br />
-		</div>
-		<br />
-	</div>`
+},
+template: `<div>
+    <h2 class="grandiflora-one-regular" 
+        :style="'visibility: ' + (checkWinStatus() ? 'visible' : 'hidden') + '; color: #d4af37; margin-bottom: 20px; text-shadow: 0 0 10px rgba(212,175,55,0.5);'">
+        전류가 연결되었습니다. 무대 장치가 작동합니다!
+    </h2>
+
+    <div v-for="(row, rowIndex) in grid">
+        <div style="display: inline-block" v-for="(tile, colIndex) in row">
+            <div :class="'tile ' + getMovableClass(tile[2])" 
+                 :style="'rotate: '+tile[1]*90+'deg;'" 
+                 v-if="tile.length != 0" 
+                 @click="rotate(tile, rowIndex, colIndex)">
+                 
+                <div :style="'background-color: '+getColour(tile, rowIndex, colIndex)+';'" :class="getNodeClass(tile[0])"></div>
+                <div v-if="tile[0] == 'L'" :style="'background-color: '+getColour(tile, rowIndex, colIndex)+';'" :class="getNodeClass(tile[0],true)"></div>
+                
+                <div v-if="tile[0] != 'X'" 
+                     :class="(tile[0] === 'P' ? 'bigcircle-node' : 'circle-node')" 
+                     :style="'background-color: '+(tile[0] == 'E' ? colours[tile[4]] : getColour(tile, rowIndex, colIndex))+'; rotate: '+tile[1]*(-90)+'deg;'">
+                </div>
+                
+                <div v-if="tile[0] == 'P'" 
+                     :class="'portalsymbol grandiflora-one-regular' + (getColour(tile, rowIndex, colIndex) !== '' ? ' active' : '')" 
+                     :style="'rotate: '+tile[1]*(-90)+'deg;'">
+                    {{shapes[tile[4]]}}
+                </div>
+            </div>
+        </div>
+        <br />
+    </div>
+    <br />
+</div>`
 }
 // :style="'rotate: '+(tile[0] === 'P' ? 0 : tile[1]*90)+'deg;'"
-// https://www.telerik.com/blogs/passing-variables-to-css-on-a-vue-component
