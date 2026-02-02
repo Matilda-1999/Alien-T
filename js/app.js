@@ -1,152 +1,103 @@
-//0203-01
-
 import { ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 
 export default {
-	setup() {
-		const queryString = window.location.search;
-		const params = new URLSearchParams(queryString);
-		const showAnswer = params.get('topsecret') === 'true';
-		const gridwidth = params.has('cols') ? parseInt(params.get('cols')) : 12;
-		const gridheight = params.has('rows') ? parseInt(params.get('rows')) : 5;
-		
-		const start = '0,0';
-		let end = (Math.floor(Math.random() * gridheight)) + ',' + (gridwidth - 1);
-		
-		const pathlength = Math.floor(Math.random()*(0.2*gridwidth*gridheight) + 0.4*gridwidth*gridheight);
-		
-		var path1 = [start], path2 = [end], curpathlength = 2;
-		
-		function getNextTile(coord, p1, p2) {
-			const coords = coord.split(',').map(Number);
-			const row = coords[0], col = coords[1];
-			var tiles = [];
-			[[row-1, col], [row+1, col], [row, col-1], [row, col+1]].forEach(([nr, nc]) => {
-				const ntile = nr + ',' + nc;
-				if(nr >= 0 && nr < gridheight && nc >= 0 && nc < gridwidth && !p1.includes(ntile) && !p2.includes(ntile)) tiles.push(ntile);
-			});
-			return tiles.length > 0 ? tiles[Math.floor(Math.random()*tiles.length)] : false;
-		}
-		
-		// [수정 포인트 1] 포털 2쌍(4개 타일) 강제 생성 로직
-		let portalsRequired = 2; 
-		let safety = 0;
+    setup() {
+        const queryString = window.location.search;
+        const params = new URLSearchParams(queryString);
+        const showAnswer = params.get('topsecret') === 'true';
+        
+        // 1. 설정: 행 8줄 고정, 열은 파라미터 따름 (기본 12)
+        const gridwidth = params.has('cols') ? parseInt(params.get('cols')) : 12;
+        const gridheight = 8; 
 
-		while((curpathlength < pathlength || portalsRequired > 0) && safety < 1000) {
-			safety++;
-			let side = Math.random() < 0.5 ? path1 : path2;
-			let other = side === path1 ? path2 : path1;
-			
-			const last = side[side.length-1];
-			const next = getNextTile(last, path1, path2);
-			
-			if(next) {
-				side.push(next);
-				curpathlength++;
-			} else if(portalsRequired > 0) {
-				// 막다른 길일 때 포털로 점프
-				let check = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
-				if(!path1.includes(check) && !path2.includes(check) && getNextTile(check, path1, path2)) {
-					side.push(check);
-					portalsRequired--;
-					curpathlength++;
-				}
-			}
-		}
+        // 2. 정답 경로 정의 (예시: 패턴 A)
+        // [행, 열, 타입, 정답회전, 포털번호(있을경우)]
+        const patternA = [
+            [0,0,'S',3], [0,1,'I',1], [0,2,'P',1,0], // 시작 -> 포털1
+            [2,4,'P',3,0], [2,5,'L',0], [3,5,'I',0], [4,5,'P',0,1], // 포털1 -> 포털2
+            [1,1,'P',2,1], [1,2,'L',1], [1,3,'I',1], [1,4,'P',1,2], // 포털2 -> 포털3
+            [7,10,'P',3,2], [7,11,'E',1] // 포털3 -> 종료
+        ];
 
-		function getDir(c1, c2) {
-			if(!c1 || !c2) return null;
-			let co1 = c1.split(',').map(Number), co2 = c2.split(',').map(Number);
-			if(co1[0] == co2[0]) return co1[1] > co2[1] ? 'left' : 'right';
-			if(co1[1] == co2[1]) return co1[0] > co2[0] ? 'up' : 'down';
-			return 'portal';
-		}
-		
-		const fullpath = path1.concat(path2.toReversed());
-		var grid = ref([]);
-		const dirs = ['down', 'left', 'up', 'right'];
-		let portalnum = 0, portals = {};
+        // 3. 정답 경로 정의 (예시: 패턴 B)
+        const patternB = [
+            [0,0,'S',3], [1,0,'L',0], [1,1,'P',3,0], // 시작 -> 포털1
+            [5,2,'P',1,0], [5,1,'I',1], [5,0,'L',3], [6,0,'P',2,1], // 포털1 -> 포털2
+            [2,8,'P',0,1], [1,8,'L',2], [1,9,'I',1], [1,10,'P',1,2], // 포털2 -> 포털3
+            [7,5,'P',2,2], [7,6,'I',1], [7,11,'E',1] // 포털3 -> 종료
+        ];
 
-		for(let i = 0; i < gridheight; i++) {
-			let row = [];
-			for(let j = 0; j < gridwidth; j++) {
-				let type = 'D', rotation = 0, movable = 0, extra = '', ansRot = 0;
-				let coord = i+','+j, pathIndex = fullpath.indexOf(coord);
+        const selectedPath = Math.random() < 0.5 ? patternA : patternB;
+        const fullpathCoords = selectedPath.map(p => p[0] + ',' + p[1]);
 
-				if(pathIndex !== -1) {
-					let prevD = getDir(coord, fullpath[pathIndex-1]);
-					let nextD = getDir(coord, fullpath[pathIndex+1]);
+        const grid = ref([]);
+        const themeColor = '#FF4500';
+        const shapes = [1, 2, 3]; // 포털 3쌍 고정
 
-					if(start == coord) {
-						type = 'S'; rotation = dirs.indexOf(nextD);
-					} else if(end == coord) {
-						type = 'E'; rotation = dirs.indexOf(prevD);
-					} else if(nextD == 'portal' || prevD == 'portal') {
-						type = 'P';
-						if(portals[coord] === undefined) {
-							let other = nextD == 'portal' ? fullpath[pathIndex+1] : fullpath[pathIndex-1];
-							portals[coord] = portalnum; portals[other] = portalnum; extra = portalnum++;
-						} else extra = portals[coord];
-						rotation = dirs.indexOf(nextD == 'portal' ? prevD : nextD);
-					} else {
-						let d1 = dirs.indexOf(prevD), d2 = dirs.indexOf(nextD);
-						if(Math.abs(d1 - d2) == 2) { 
-							type = 'I'; rotation = d1 % 2; 
-						} else { 
-							// [수정 포인트 2] L자 타일 정답 방향 보정 (Down-Right 예외 처리)
-							if ((d1 == 0 && d2 == 3) || (d1 == 3 && d2 == 0)) rotation = 0;
-							else rotation = Math.max(d1, d2);
-							type = 'L';
-						}
-					}
-					ansRot = rotation; // 정답 각도 저장
-					movable = (type == 'P' ? 0 : 1); 
-					if(movable) rotation = (rotation + Math.floor(Math.random()*4))%4;
-				} else {
-					type = (Math.random() < 0.3) ? 'D' : (Math.random() < 0.6 ? 'I' : 'L');
-					rotation = Math.floor(Math.random()*4); movable = (type !== 'D');
-					ansRot = rotation;
-				}
-				row.push([type, rotation, movable, '', extra, ansRot]);
-			}
-			grid.value.push(row);
-		}
-		
-		const themeColor = '#FF4500'; 
-		let shapes = [1, 2, 3, 4];
+        // 4. 그리드 생성
+        for (let i = 0; i < gridheight; i++) {
+            let row = [];
+            for (let j = 0; j < gridwidth; j++) {
+                let coord = i + ',' + j;
+                let pathNode = selectedPath.find(p => (p[0] + ',' + p[1]) === coord);
+                
+                let type, rotation, movable, extra, ansRot;
 
-		return { 
-			grid, shapes, themeColor, 
-			getNodeClass: (t, alt=false) => {
-				const m = { "I": "i-node", "L": alt ? "lh-node" : "lv-node", "S": "start-node", "E": "end-node", "P": "portal-node", "D": "deadend-node" };
-				return m[t] || "";
-			},
-			getMovableClass: (a) => a == 0 ? "tile-immovable" : "tile-movable",
-			getColour: (tile, r, c) => (tile[0]=='S'||tile[0]=='E'||(showAnswer && fullpath.includes(r+','+c))) ? themeColor : '',
-			rotate: (t, r, c) => { if(t[2]) grid.value[r][c][1] = (grid.value[r][c][1] + 1)%4; },
-			isCorrectPath: (r, c) => showAnswer && fullpath.includes(r + ',' + c),
-			checkWinStatus: () => false
-		};
-	},
-	template: `<div class="d-flex flex-column align-items-center">
-		<div v-for="(row, rowIndex) in grid" :key="rowIndex">
-			<div style="display: inline-block" v-for="(tile, colIndex) in row" :key="colIndex">
-				<div :class="['tile', getMovableClass(tile[2])]" 
-					 :style="{ 
-						transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*90+'deg)' : 'rotate('+tile[1]*90+'deg)',
-						outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none',
-						boxShadow: isCorrectPath(rowIndex, colIndex) ? '0 0 15px #FF3300' : 'none'
-					 }" @click="rotate(tile, rowIndex, colIndex)">
-					<div :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0])"></div>
-					<div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
-					<div :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" 
-						 :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37', transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*-90+'deg)' : 'rotate('+tile[1]*-90+'deg)' }"></div>
-					<div v-if="tile[0] == 'P'" class="portalsymbol active" :style="{ transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*-90+'deg)' : 'rotate('+tile[1]*-90+'deg)' }">
-						{{shapes[tile[4]]}}
-					</div>
-				</div>
-			</div>
-			<br />
-		</div>
-	</div>`
+                if (pathNode) {
+                    // 정답 경로 타일
+                    type = pathNode[2];
+                    ansRot = pathNode[3];
+                    extra = pathNode[4] !== undefined ? pathNode[4] : '';
+                    movable = (type === 'P' ? 0 : 1);
+                    // 초기 위치는 랜덤하게 섞음
+                    rotation = movable ? (ansRot + Math.floor(Math.random() * 3) + 1) % 4 : ansRot;
+                } else {
+                    // 배경 타일 (장식용)
+                    let r = Math.random();
+                    type = r < 0.3 ? 'D' : (r < 0.6 ? 'I' : 'L');
+                    ansRot = Math.floor(Math.random() * 4);
+                    rotation = ansRot;
+                    movable = (type !== 'D' ? 1 : 0);
+                    extra = '';
+                }
+                row.push([type, rotation, movable, '', extra, ansRot]);
+            }
+            grid.value.push(row);
+        }
+
+        return {
+            grid, shapes, themeColor,
+            getNodeClass: (t, alt = false) => {
+                const m = { "I": "i-node", "L": alt ? "lh-node" : "lv-node", "S": "start-node", "E": "end-node", "P": "portal-node", "D": "deadend-node" };
+                return m[t] || "";
+            },
+            getMovableClass: (a) => a == 0 ? "tile-immovable" : "tile-movable",
+            getColour: (tile, r, c) => (tile[0] === 'S' || tile[0] === 'E' || (showAnswer && fullpathCoords.includes(r + ',' + c))) ? themeColor : '',
+            rotate: (t, r, c) => { if (t[2]) grid.value[r][c][1] = (grid.value[r][c][1] + 1) % 4; },
+            isCorrectPath: (r, c) => showAnswer && fullpathCoords.includes(r + ',' + c),
+            checkWinStatus: () => false // 검증 로직 별도
+        };
+    },
+    template: `
+    <div class="d-flex flex-column align-items-center">
+        <div v-for="(row, rowIndex) in grid" :key="rowIndex">
+            <div style="display: inline-block" v-for="(tile, colIndex) in row" :key="colIndex">
+                <div :class="['tile', getMovableClass(tile[2])]" 
+                     :style="{ 
+                        transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*90+'deg)' : 'rotate('+tile[1]*90+'deg)',
+                        outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none',
+                        boxShadow: isCorrectPath(rowIndex, colIndex) ? '0 0 15px #FF3300' : 'none'
+                     }" @click="rotate(tile, rowIndex, colIndex)">
+                    <div :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0])"></div>
+                    <div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
+                    <div :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" 
+                         :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37', transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*-90+'deg)' : 'rotate('+tile[1]*-90+'deg)' }"></div>
+                    <div v-if="tile[0] == 'P'" class="portalsymbol active" :style="{ transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*-90+'deg)' : 'rotate('+tile[1]*-90+'deg)' }">
+                        {{shapes[tile[4]]}}
+                    </div>
+                </div>
+            </div>
+            <br />
+        </div>
+    </div>`
 }
