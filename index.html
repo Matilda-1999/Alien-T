@@ -50,7 +50,29 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+   
+    <script>
+        // 1. 마우스 우클릭 방지
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
 
+        // 2. 개발자 도구 단축키 방지
+        document.onkeydown = function(e) {
+            // F12 방지
+            if (e.keyCode == 123) return false;
+            // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U(소스 보기) 방지
+            if (e.ctrlKey && (e.shiftKey && (e.keyCode == 73 || e.keyCode == 74) || e.keyCode == 85)) return false;
+        };
+
+        // 3. 무한 디버거 루프 (개발자 도구가 열리면 브라우저가 느려지게 함)
+        setInterval(function() {
+            (function() {
+                return false;
+            }['constructor']('debugger')['call']());
+        }, 50);
+    </script>
+    
     <script type="module">
         import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
         import App from './js/app.js';
@@ -66,3 +88,4 @@
     </script>
 </body>
 </html>
+
