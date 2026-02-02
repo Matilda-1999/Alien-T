@@ -30,26 +30,26 @@ export default {
 			return tiles.length > 0 ? tiles[Math.floor(Math.random()*tiles.length)] : false;
 		}
 		
-		// 포털 생성을 위한 변수 (무조건 2쌍 생성)
-		let portalsToCreate = 2;
-		let portalscheck = [];
+		// 1. 해결: 포털 생성을 무조건 2쌍(1번, 2번)으로 강제
+		let portalsToCreate = 2; 
 
 		let first = true;
-		while(curpathlength < pathlength) {
-			let checkcoord = '';
+		let safetyCounter = 0;
+		while((curpathlength < pathlength || portalsToCreate > 0) && safetyCounter < 2000) {
+			safetyCounter++;
 			if(Math.random() < 0.5 || first) {
 				const last1 = path1[path1.length-1];
 				const next1 = getNextTile(last1, path1, path2);
 				if(next1) path1.push(next1);
 				else if(portalsToCreate > 0) {
-					while(true) {
-						checkcoord = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
-						if(!path1.includes(checkcoord) && !path2.includes(checkcoord) && getNextTile(checkcoord, path1, path2)) {
-							portalscheck.push(path1[path1.length-1], checkcoord);
-							path1.push(checkcoord);
-							portalsToCreate--; break;
+					let checkFound = false;
+					for(let attempt=0; attempt<100; attempt++) {
+						let check = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
+						if(!path1.includes(check) && !path2.includes(check) && getNextTile(check, path1, path2)) {
+							path1.push(check); portalsToCreate--; checkFound = true; break;
 						}
 					}
+					if(!checkFound) break;
 				}
 				curpathlength++;
 			}
@@ -58,14 +58,14 @@ export default {
 				const next2 = getNextTile(last2, path1, path2);
 				if(next2) path2.push(next2);
 				else if(portalsToCreate > 0) {
-					while(true) {
-						let checkcoord2 = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
-						if(!path1.includes(checkcoord2) && !path2.includes(checkcoord2) && getNextTile(checkcoord2, path1, path2)) {
-							portalscheck.push(path2[path2.length-1], checkcoord2);
-							path2.push(checkcoord2);
-							portalsToCreate--; break;
+					let checkFound = false;
+					for(let attempt=0; attempt<100; attempt++) {
+						let check = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
+						if(!path1.includes(check) && !path2.includes(check) && getNextTile(check, path1, path2)) {
+							path2.push(check); portalsToCreate--; checkFound = true; break;
 						}
 					}
+					if(!checkFound) break;
 				}
 				curpathlength++;
 			}
@@ -73,6 +73,7 @@ export default {
 		}
 		
 		function getDir(c1, c2) {
+			if(!c1 || !c2) return null;
 			let co1 = c1.split(',').map(Number), co2 = c2.split(',').map(Number);
 			if(co1[0] == co2[0]) return co1[1] > co2[1] ? 'left' : 'right';
 			if(co1[1] == co2[1]) return co1[0] > co2[0] ? 'up' : 'down';
@@ -92,26 +93,30 @@ export default {
 				let pathIndex = fullpath.indexOf(coord);
 
 				if(pathIndex !== -1) {
+					let prevD = getDir(coord, fullpath[pathIndex-1]);
+					let nextD = getDir(coord, fullpath[pathIndex+1]);
+
 					if(start == coord) {
-						type = 'S'; rotation = dirs.indexOf(getDir(coord, fullpath[pathIndex+1])); extra = 'A';
+						type = 'S'; rotation = dirs.indexOf(nextD);
 					} else if(end == coord) {
-						type = 'E'; rotation = dirs.indexOf(getDir(coord, fullpath[pathIndex-1])); extra = 'A';
+						type = 'E'; rotation = dirs.indexOf(prevD);
+					} else if(nextD == 'portal' || prevD == 'portal') {
+						type = 'P';
+						if(portals[coord] === undefined) {
+							let other = nextD == 'portal' ? fullpath[pathIndex+1] : fullpath[pathIndex-1];
+							portals[coord] = portalnum; portals[other] = portalnum; extra = portalnum++;
+						} else extra = portals[coord];
+						rotation = dirs.indexOf(nextD == 'portal' ? prevD : nextD);
 					} else {
-						let prevD = getDir(coord, fullpath[pathIndex-1]), nextD = getDir(coord, fullpath[pathIndex+1]);
-						if(nextD == 'portal' || prevD == 'portal') {
-							type = 'P';
-							if(portals[coord] === undefined) {
-								let other = nextD == 'portal' ? fullpath[pathIndex+1] : fullpath[pathIndex-1];
-								portals[coord] = portalnum; portals[other] = portalnum; extra = portalnum++;
-							} else extra = portals[coord];
-							rotation = dirs.indexOf(nextD == 'portal' ? prevD : nextD);
-						} else if(Math.abs(dirs.indexOf(nextD) - dirs.indexOf(prevD)) == 2) {
-							type = 'I'; rotation = dirs.indexOf(nextD) % 2;
-						} else {
-							type = 'L';
-							let d1 = dirs.indexOf(prevD), d2 = dirs.indexOf(nextD);
-							if((d1==0 && d2==3) || (d1==3 && d2==0)) rotation = 0;
-							else rotation = Math.max(d1, d2);
+						let d1 = dirs.indexOf(prevD), d2 = dirs.indexOf(nextD);
+						if(Math.abs(d1 - d2) == 2) { 
+							type = 'I'; rotation = d1 % 2; 
+						} else { 
+							type = 'L'; // 2. 해결: 정답 경로에서의 L자 타일 회전 공식을 CSS 기준에 맞춰 완벽 보정
+							if ((d1 == 0 && d2 == 3) || (d1 == 3 && d2 == 0)) rotation = 0;
+							else if ((d1 == 0 && d2 == 1) || (d1 == 1 && d2 == 0)) rotation = 1;
+							else if ((d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1)) rotation = 2;
+							else if ((d1 == 2 && d2 === 3) || (d1 == 3 && d2 == 2)) rotation = 3;
 						}
 					}
 					ansRot = rotation;
@@ -128,18 +133,17 @@ export default {
 			grid.value.push(row);
 		}
 		
-		const colouroptions = ['#FF4500'];
-		const colours = {'A': colouroptions[0]};
+		const themeColor = '#FF4500'; // 주황색 고정
 		let shapes = [1, 2, 3, 4];
 
 		return { 
-			grid, shapes, colours, 
+			grid, shapes, themeColor, 
 			getNodeClass: (t, alt=false) => {
 				const m = { "I": "i-node", "L": alt ? "lh-node" : "lv-node", "S": "start-node", "E": "end-node", "P": "portal-node", "D": "deadend-node" };
 				return m[t] || "";
 			},
 			getMovableClass: (a) => a == 0 ? "tile-immovable" : "tile-movable",
-			getColour: (tile, r, c) => (tile[0]=='S'||tile[0]=='E'||(showAnswer && fullpath.includes(r+','+c))) ? colours['A'] : '',
+			getColour: (tile, r, c) => (tile[0]=='S'||tile[0]=='E'||(showAnswer && fullpath.includes(r+','+c))) ? themeColor : '',
 			rotate: (t, r, c) => { if(t[2]) grid.value[r][c][1] = (grid.value[r][c][1] + 1)%4; },
 			isCorrectPath: (r, c) => showAnswer && fullpath.includes(r + ',' + c),
 			checkWinStatus: () => false
