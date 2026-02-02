@@ -1,179 +1,138 @@
-body
-{
-	font-family: Tektur;
-	background-color: black;
-	color: white;
+/* 1. 폰트 설정: 사용자가 제공한 클래스 및 기본 폰트 적용 */
+.grandiflora-one-regular {
+  font-family: "Grandiflora One", cursive;
+  font-weight: 400;
+  font-style: normal;
 }
-.tile
-{
-	height: min(100px, calc(100vw/15));
-	width: min(100px, calc(100vw/15));
-	background-color: #555555;
-	position: relative;
-	z-index: 0;
-	margin: min(5px, calc(5vw/15));
-	display: inline-block;
-	transform-origin: 50% 50%;
+
+.noto-serif-kr {
+  font-family: "Noto Serif KR", serif;
+  font-optical-sizing: auto;
+  font-weight: 400; /* 기본 두께 */
+  font-style: normal;
 }
-.tile-movable
-{
-	border-radius: 50%;
+
+/* 2. 전체 배경 및 기본 스타일 */
+body {
+    font-family: "Noto Serif KR", serif;
+    /* 사용자가 업로드한 배경 이미지 적용 */
+    background-image: url('../bg1.png'); 
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #e0d7c6; /* 리버스 1999 특유의 미색 텍스트 색상 */
+    margin: 0;
+    overflow-x: hidden;
 }
-.tile-movable::after
-{
-	content: '';
-	position: absolute;
-	top: 49.625%;
-	left: 49.625%;
-	transform: translate(-49.625%, -49.625%);
-	width: 100%;
-	height: 100%;
-	border: 5px solid #555555;
-	border-radius: 50%;
-	z-index: 1;
+
+/* 3. 게임 보드 컨테이너 (반투명 레이어) */
+#app {
+    background: rgba(18, 20, 15, 0.85); /* 짙은 녹회색 반투명으로 가독성 확보 */
+    padding: 30px;
+    border: 1px solid #4a4d44;
+    border-radius: 5px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px); /* 배경 이미지 살짝 흐리게 처리 */
+    display: inline-block;
+    margin-top: 20px;
 }
-.tile-immovable::after
-{
-	content: '';
-	position: absolute;
-	top: 49.625%;
-	left: 49.625%;
-	transform: translate(-49.625%, -49.625%);
-	width: 10%;
-	height: 10%;
-	border: 5px solid #555555;
-	z-index: 1;
+
+/* 4. 타일(패널) 디자인 */
+.tile {
+    height: min(100px, calc(100vw/15));
+    width: min(100px, calc(100vw/15));
+    background-color: #2a2d24 !important; /* 고전적인 기계 질감의 어두운 색상 */
+    position: relative;
+    z-index: 0;
+    margin: min(5px, calc(5vw/15));
+    display: inline-block;
+    transform-origin: 50% 50%;
+    border: 1px solid #3e4137;
 }
-.i-node
-{
-	height: 96%;
-	width: 20%;
-	position: absolute;
-	left: 40%;
-	top: 2%;
-	background-color: #cccccc;
-	z-index: 1;
+
+/* 회전 가능한 타일 테두리 */
+.tile-movable {
+    border-radius: 50%;
 }
-.lv-node
-{
-	height: 50%;
-	width: 20%;
-	position: absolute;
-	left: 40%;
-	top: 2%;
-	background-color: #cccccc;
-	z-index: 1;
+
+.tile-movable::after {
+    content: '';
+    position: absolute;
+    top: 49.625%;
+    left: 49.625%;
+    transform: translate(-49.625%, -49.625%);
+    width: 100%;
+    height: 100%;
+    border: 3px solid #b4a078 !important; /* 금속 느낌의 황동색 테두리 */
+    border-radius: 50%;
+    z-index: 1;
 }
-.lh-node
-{
-	height: 20%;
-	width: 49%;
-	position: absolute;
-	left: 49%;
-	top: 40%;
-	background-color: #cccccc;
-	z-index: 1;
+
+/* 고정된 타일 테두리 */
+.tile-immovable::after {
+    content: '';
+    position: absolute;
+    top: 49.625%;
+    left: 49.625%;
+    transform: translate(-49.625%, -49.625%);
+    width: 10%;
+    height: 10%;
+    border: 2px solid #555555;
+    z-index: 1;
 }
-.l-node
-{
-	height: 100%;
-	width: 100%;
+
+/* 5. 회로 선(Node) 및 에너지 흐름 디자인 */
+.i-node, .lv-node, .lh-node, .circle-node, .start-node, .end-node, .portal-node {
+    background-color: #d4af37 !important; /* 마도학적 에너지가 흐르는 금색 */
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.6); /* 빛나는 효과 */
+    z-index: 1;
 }
-.l-node::before
-{
-	height: 50%;
-	width: 20%;
-	position: absolute;
-	left: 40%;
-	background-color: #cccccc;
-	z-index: 1;
-	content: '';
+
+.i-node { height: 96%; width: 20%; position: absolute; left: 40%; top: 2%; }
+.lv-node { height: 50%; width: 20%; position: absolute; left: 40%; top: 2%; }
+.lh-node { height: 20%; width: 49%; position: absolute; left: 49%; top: 40%; }
+
+.circle-node {
+    height: 50%; width: 50%; border-radius: 50%;
+    position: absolute; top: 24.75%; left: 24.75%;
+    transform-origin: 50.375% 50.375%;
+    z-index: 2;
 }
-.l-node::after
-{
-	height: 20%;
-	width: 50%;
-	position: absolute;
-	left: 50%;
-	top: 40%;
-	background-color: #cccccc;
-	z-index: 1;
-	content: '';
+
+.start-node, .end-node, .portal-node {
+    height: 50%; width: 20%; position: absolute; top: 48%; left: 40%;
 }
-.circle-node
-{
-	height: 50%;
-	width: 50%;
-	border-radius: 50%;
-	position: absolute;
-	top: 24.75%;
-	left: 24.75%;
-	transform-origin: 50.375% 50.375%;
-	background-color: #cccccc;
-	z-index: 2;
+
+.bigcircle-node {
+    height: 80%; width: 80%; border-radius: 50%;
+    position: absolute; top: 10%; left: 10%;
+    transform-origin: 49.5% 49.5%;
+    background-color: #d4af37 !important;
+    z-index: 2;
 }
-.start-node, .end-node, .portal-node/*, .deadend-node*/
-{
-	height: 50%;
-	width: 20%;
-	position: absolute;
-	top: 48%;
-	left: 40%;
-	background-color: #cccccc;
-	z-index: 1;
+
+/* 6. 포털 기호 및 UI 텍스트 */
+.portalsymbol {
+    font-family: "Grandiflora One", cursive;
+    height: 50%; width: 50%; position: absolute; z-index: 3;
+    color: #d4af37 !important;
+    font-size: min(72px, calc(4.8vw));
+    font-weight: bold;
+    text-align: center;
+    top: -6%; left: 25%;
+    transform-origin: 50.375% 111.25%;
+    user-select: none;
 }
-.portal-node
-{
-	text-align: center;
+
+.portalsymbol.active {
+    color: #1a1c16 !important; /* 에너지 연결 시 기호 색상 반전 */
 }
-.bigcircle-node
-{
-	height: 80%;
-	width: 80%;
-	border-radius: 50%;
-	position: absolute;
-	top: 10%;
-	left: 10%;
-	transform-origin: 49.5% 49.5%;
-	background-color: #cccccc;
-	z-index: 2;
-}
-.portalsymbol
-{
-	height: 50%;
-	width: 50%;
-	position: absolute;
-	z-index: 3;
-	color: white;
-	font-size: min(72px, calc(4.8vw));
-	font-weight: bold;
-	text-align: center;
-	top: -6%;
-	left: 25%;
-	transform-origin: 50.375% 111.25%;
-	-webkit-user-select: none; /* Safari */
-	-ms-user-select: none; /* IE 10 and IE 11 */
-	user-select: none; /* Standard syntax */
-}
-.portalsymbol.active
-{
-	color: #555555 !important;
-}
-.row
-{
-	display: flex;
-	align-items: center;
-}
-.btn
-{
-	border: 3px solid white;
-}
-.modal-title
-{
-	font-size: 24px;
-}
-.modal-body
-{
-	font-size: 18px;
-	font-family: Cabin;
-}
+
+/* 7. 기타 레이아웃 */
+.row { display: flex; align-items: center; }
+.btn { border: 2px solid #e0d7c6; background: rgba(0,0,0,0.3); color: #e0d7c6; font-family: "Noto Serif KR"; }
+.btn:hover { background: #b4a078; color: #1a1c16; }
+
+.modal-content { background-color: #1a1c16; color: #e0d7c6; border: 1px solid #4a4d44; }
+.modal-title { font-family: "Grandiflora One"; }
+.modal-body { font-family: "Noto Serif KR"; line-height: 1.6; }
