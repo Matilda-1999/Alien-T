@@ -5,19 +5,16 @@ export default {
         const queryString = window.location.search;
         const params = new URLSearchParams(queryString);
         
-        // 1. 설정 및 파라미터 처리
         const showAnswer = params.get('topsecret') === 'true';
         const gridwidth = params.has('cols') ? parseInt(params.get('cols')) : 12;
         const gridheight = params.has('rows') ? parseInt(params.get('rows')) : 5;
         
-        // 시작점(왼쪽 위) 및 끝점(오른쪽 열 랜덤 행) 고정
         const start = '0,0';
         const end = Math.floor(Math.random() * gridheight) + ',' + (gridwidth - 1);
         
         const pathlength = Math.floor(Math.random()*(0.2*gridwidth*gridheight) + 0.4*gridwidth*gridheight);
         var path1 = [start], path2 = [end], curpathlength = 2;
         
-        // 타일 탐색 함수
         function getNextTile(coord, p1, p2) {
             const [r, c] = coord.split(',').map(Number);
             const tiles = [];
@@ -32,18 +29,21 @@ export default {
             return tiles.length > 0 ? tiles[Math.floor(Math.random() * tiles.length)] : false;
         }
         
-        // 2. 경로 생성 로직 (무한 로딩 방지 안전장치 포함)
+        // 포털 개수를 무조건 2쌍으로 고정하기 위한 변수
+        let portalCreatedCount = 0;
+        const maxPortals = 2; 
+
         let first = true, safety = 0;
         while(curpathlength < pathlength && safety < 1000) {
             safety++;
             if(Math.random() < 0.5 || first) {
                 const t1 = getNextTile(path1[path1.length-1], path1, path2);
                 if(t1) { path1.push(t1); curpathlength++; }
-                else {
+                else if (portalCreatedCount < maxPortals) { // 포털이 필요하고 아직 2개가 안 넘었을 때만 생성
                     for(let i=0; i<50; i++) {
                         let chk = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
                         if(!path1.includes(chk) && !path2.includes(chk) && getNextTile(chk, path1, path2)) {
-                            path1.push(chk); curpathlength++; break;
+                            path1.push(chk); curpathlength++; portalCreatedCount++; break;
                         }
                     }
                 }
@@ -51,11 +51,11 @@ export default {
             if(Math.random() >= 0.5 || first) {
                 const t2 = getNextTile(path2[path2.length-1], path1, path2);
                 if(t2) { path2.push(t2); curpathlength++; }
-                else {
+                else if (portalCreatedCount < maxPortals) {
                     for(let i=0; i<50; i++) {
                         let chk = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
                         if(!path1.includes(chk) && !path2.includes(chk) && getNextTile(chk, path1, path2)) {
-                            path2.push(chk); curpathlength++; break;
+                            path2.push(chk); curpathlength++; portalCreatedCount++; break;
                         }
                     }
                 }
@@ -75,7 +75,6 @@ export default {
         const grid = ref([]), dirs = ['down', 'left', 'up', 'right'];
         let portalnum = 0, portals = {};
 
-        // 3. 그리드 데이터 구성 (회전 로직 정밀 교정)
         for(let i = 0; i < gridheight; i++) {
             let row = [];
             for(let j = 0; j < gridwidth; j++) {
@@ -121,10 +120,15 @@ export default {
         }
         
         const themeColor = '#FF4500'; 
-        let shapes = Array.from({length: portalnum}, (_, i) => i + 1);
+        let shapes = [1, 2]; // 포털 숫자를 1, 2로 고정
+
+        const checkWinStatus = () => {
+            const [er, ec] = end.split(',').map(Number);
+            return grid.value[er] && grid.value[er][ec][3] !== '';
+        };
 
         return { 
-            grid, shapes, themeColor,
+            grid, shapes, themeColor, checkWinStatus,
             getNodeClass: (t, alt=false) => {
                 const m = { "I": "i-node", "L": alt ? "lh-node" : "lv-node", "S": "start-node", "E": "end-node", "P": "portal-node", "D": "deadend-node" };
                 return m[t] || "";
@@ -132,15 +136,14 @@ export default {
             getMovableClass: (a) => a == 0 ? "tile-immovable" : "tile-movable",
             getColour: (tile, r, c) => (tile[0] === 'S' || tile[0] === 'E' || (showAnswer && fullpath.includes(r + ',' + c))) ? themeColor : '',
             rotate: (t, r, c) => { if(t[2]) grid.value[r][c][1] = (grid.value[r][c][1] + 1)%4; },
-            checkWinStatus: () => {
-                const [er, ec] = end.split(',').map(Number);
-                return grid.value[er] && grid.value[er][ec][3] !== ''; // 전류 로직 연동 필요 시 수정
-            },
             isCorrectPath: (r, c) => showAnswer && fullpath.includes(r + ',' + c)
         };
     },
     template: `
     <div class="d-flex flex-column align-items-center">
+        <h2 class="grandiflora-one-regular mb-4" :style="{ visibility: checkWinStatus() ? 'visible' : 'hidden', color: themeColor }">
+            전류가 연결되었습니다!
+        </h2>
         <div v-for="(row, rowIndex) in grid" :key="rowIndex">
             <div style="display: inline-block" v-for="(tile, colIndex) in row" :key="colIndex">
                 <div :class="['tile', getMovableClass(tile[2])]" 
