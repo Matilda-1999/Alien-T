@@ -27,15 +27,13 @@ export default {
         
         // 2. 경로 생성 알고리즘
         function getNextTile(coord) {
-            const coords = coord.split(',');
-            const row = parseInt(coords[0]);
-            const col = parseInt(coords[1]);
+            const coords = coord.split(',').map(Number);
             var tiles = [];
+            const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
             
-            const dirs = [[-1, 0], [0, -1], [0, 1], [1, 0]];
             for (let [dr, dc] of dirs) {
-                const nr = row + dr;
-                const nc = col + dc;
+                const nr = coords[0] + dr;
+                const nc = coords[1] + dc;
                 const ntile = nr + ',' + nc;
                 if (nr >= 0 && nr < gridheight && nc >= 0 && nc < gridwidth && !path1.includes(ntile) && !path2.includes(ntile)) {
                     tiles.push(ntile);
@@ -45,21 +43,22 @@ export default {
         }
         
         var first = true;
-        let portalscheck = [];
         while(curpathlength < pathlength) {
             if(Math.random() < 0.5 || first) {
                 const tile1 = getNextTile(path1[path1.length-1]);
                 if(tile1) path1.push(tile1);
-                curpathlength++;
             }
             if(Math.random() >= 0.5 || first) {
                 const tile2 = getNextTile(path2[path2.length-1]);
                 if(tile2) path2.push(tile2);
-                curpathlength++;
             }
+            curpathlength = path1.length + path2.length;
             first = false;
         }
         
+        const fullpath = path1.concat(path2.toReversed());
+        paths['A'] = fullpath;
+
         function getDir(coord1, coord2) {
             if(!coord1 || !coord2) return 'down';
             let c1 = coord1.split(',').map(Number);
@@ -68,9 +67,6 @@ export default {
             if(c1[1] == c2[1]) return c1[0] > c2[0] ? 'up' : 'down';
             return 'portal';
         }
-        
-        const fullpath = path1.concat(path2.toReversed());
-        paths['A'] = fullpath; // paths 변수에 생성된 경로 할당
 
         // 3. 그리드 데이터 구성
         var grid = ref([]);
@@ -120,12 +116,16 @@ export default {
                     rotation = Math.floor(Math.random()*4);
                     movable = type !== 'D' ? 1 : 0;
                 }
-                row.push([type, rotation, movable, '', p_idx]); // index 3은 전파 색상, 4는 포털 번호
+                row.push([type, rotation, movable, '', p_idx]);
             }
             grid.value.push(row);
         }
 
-        // 4. 전파(Propagation) 알고리즘
+        // 4. 전파(Propagation) 및 헬퍼 함수
+        const colouroptions = ['#FF8C00', '#FF4500', '#FFA500'];
+        const colours = {'A': colouroptions[Math.floor(Math.random()*colouroptions.length)]};
+        let shapes = Array.from({length: portalnum}, (_, i) => i + 1);
+
         const updatePropagation = () => {
             grid.value.forEach(r => r.forEach(tile => tile[3] = ''));
             let queue = [start];
@@ -180,10 +180,6 @@ export default {
             }
         };
 
-        const colouroptions = ['#FF8C00', '#FF4500', '#FFA500'];
-        const colours = {'A': colouroptions[Math.floor(Math.random()*colouroptions.length)]};
-        let shapes = Array.from({length: portalnum}, (_, i) => i + 1);
-
         onMounted(updatePropagation);
 
         return { 
@@ -202,17 +198,17 @@ export default {
             }, 
             checkWinStatus: () => {
                 let [er, ec] = end.split(',').map(Number);
-                return grid.value[er][ec][3] !== '';
+                return grid.value[er] && grid.value[er][ec] && grid.value[er][ec][3] !== '';
             },
             isCorrectPath: (r, c) => showAnswer && fullpath.includes(r + ',' + c)
         };
     },
     template: `
-    <div>
-        <h2 class="grandiflora-one-regular text-center mb-3" :style="'visibility: ' + (checkWinStatus() ? 'visible' : 'hidden') + '; color: #FF4500; text-shadow: 0 0 10px rgba(255,69,0,0.5);'">
+    <div class="d-flex flex-column align-items-center">
+        <h2 class="grandiflora-one-regular mb-4" :style="'visibility: ' + (checkWinStatus() ? 'visible' : 'hidden') + '; color: #FF4500; text-shadow: 0 0 10px rgba(255,69,0,0.5);'">
             전류가 연결되었습니다. 무대 장치가 작동합니다!
         </h2>
-        <div class="text-center" v-for="(row, rowIndex) in grid" :key="rowIndex">
+        <div v-for="(row, rowIndex) in grid" :key="rowIndex" class="row-container">
             <div style="display: inline-block" v-for="(tile, colIndex) in row" :key="colIndex">
                 <div :class="['tile', getMovableClass(tile[2])]" 
                      :style="{ 
@@ -223,8 +219,8 @@ export default {
                      @click="rotate(tile, rowIndex, colIndex)">
                     <div :style="{ backgroundColor: tile[3] !== '' ? tile[3] : '#d4af37' }" :class="getNodeClass(tile[0])"></div>
                     <div v-if="tile[0] == 'L'" :style="{ backgroundColor: tile[3] !== '' ? tile[3] : '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
-                    <div v-if="tile[0] != 'X'" :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" :style="{ backgroundColor: tile[3] !== '' ? tile[3] : '#d4af37', transform: 'rotate(' + tile[1]*(-90) + 'deg)' }"></div>
-                    <div v-if="tile[0] == 'P'" :class="['portalsymbol', 'grandiflora-one-regular', { active: tile[3] !== '' }]" :style="{ transform: 'rotate(' + tile[1]*(-90) + 'deg)' }">{{ shapes[tile[4]] }}</div>
+                    <div v-if="tile[0] != 'X'" :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" :style="{ backgroundColor: tile[3] !== '' ? tile[3] : '#d4af37', transform: 'rotate(' + (tile[1]*-90) + 'deg)' }"></div>
+                    <div v-if="tile[0] == 'P'" :class="['portalsymbol', 'grandiflora-one-regular', { active: tile[3] !== '' }]" :style="{ transform: 'rotate(' + (tile[1]*-90) + 'deg)' }">{{ shapes[tile[4]] }}</div>
                 </div>
             </div>
         </div>
