@@ -7,7 +7,7 @@ export default {
     const params = new URLSearchParams(queryString);
     console.log(params);
 
-    const showAnswer = params.get('showpath') === 'true';
+    const showAnswer = params.get('topsecret') === 'true';
 
     const gridwidth = params.has('cols') ? parseInt(params.get('cols')) : 12;
     const gridheight = params.has('rows') ? parseInt(params.get('rows')) : 5;
@@ -655,5 +655,6 @@ template: `<div>
 </div>`
 }
 // :style="'rotate: '+(tile[0] === 'P' ? 0 : tile[1]*90)+'deg;'"
+
 
 
