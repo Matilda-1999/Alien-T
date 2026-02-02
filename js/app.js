@@ -1,3 +1,5 @@
+//0203-01
+
 import { ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 
 export default {
@@ -13,9 +15,7 @@ export default {
 		
 		const pathlength = Math.floor(Math.random()*(0.2*gridwidth*gridheight) + 0.4*gridwidth*gridheight);
 		
-		var path1 = [start];
-		var path2 = [end];
-		var curpathlength = 2;
+		var path1 = [start], path2 = [end], curpathlength = 2;
 		
 		function getNextTile(coord, p1, p2) {
 			const coords = coord.split(',').map(Number);
@@ -23,55 +23,37 @@ export default {
 			var tiles = [];
 			[[row-1, col], [row+1, col], [row, col-1], [row, col+1]].forEach(([nr, nc]) => {
 				const ntile = nr + ',' + nc;
-				if(nr >= 0 && nr < gridheight && nc >= 0 && nc < gridwidth && !p1.includes(ntile) && !p2.includes(ntile)) {
-					tiles.push(ntile);
-				}
+				if(nr >= 0 && nr < gridheight && nc >= 0 && nc < gridwidth && !p1.includes(ntile) && !p2.includes(ntile)) tiles.push(ntile);
 			});
 			return tiles.length > 0 ? tiles[Math.floor(Math.random()*tiles.length)] : false;
 		}
 		
-		// 1. 해결: 포털 생성을 무조건 2쌍(1번, 2번)으로 강제
-		let portalsToCreate = 2; 
+		// [수정 포인트 1] 포털 2쌍(4개 타일) 강제 생성 로직
+		let portalsRequired = 2; 
+		let safety = 0;
 
-		let first = true;
-		let safetyCounter = 0;
-		while((curpathlength < pathlength || portalsToCreate > 0) && safetyCounter < 2000) {
-			safetyCounter++;
-			if(Math.random() < 0.5 || first) {
-				const last1 = path1[path1.length-1];
-				const next1 = getNextTile(last1, path1, path2);
-				if(next1) path1.push(next1);
-				else if(portalsToCreate > 0) {
-					let checkFound = false;
-					for(let attempt=0; attempt<100; attempt++) {
-						let check = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
-						if(!path1.includes(check) && !path2.includes(check) && getNextTile(check, path1, path2)) {
-							path1.push(check); portalsToCreate--; checkFound = true; break;
-						}
-					}
-					if(!checkFound) break;
-				}
+		while((curpathlength < pathlength || portalsRequired > 0) && safety < 1000) {
+			safety++;
+			let side = Math.random() < 0.5 ? path1 : path2;
+			let other = side === path1 ? path2 : path1;
+			
+			const last = side[side.length-1];
+			const next = getNextTile(last, path1, path2);
+			
+			if(next) {
+				side.push(next);
 				curpathlength++;
-			}
-			if(Math.random() >= 0.5 || first) {
-				const last2 = path2[path2.length-1];
-				const next2 = getNextTile(last2, path1, path2);
-				if(next2) path2.push(next2);
-				else if(portalsToCreate > 0) {
-					let checkFound = false;
-					for(let attempt=0; attempt<100; attempt++) {
-						let check = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
-						if(!path1.includes(check) && !path2.includes(check) && getNextTile(check, path1, path2)) {
-							path2.push(check); portalsToCreate--; checkFound = true; break;
-						}
-					}
-					if(!checkFound) break;
+			} else if(portalsRequired > 0) {
+				// 막다른 길일 때 포털로 점프
+				let check = Math.floor(Math.random()*gridheight)+','+Math.floor(Math.random()*gridwidth);
+				if(!path1.includes(check) && !path2.includes(check) && getNextTile(check, path1, path2)) {
+					side.push(check);
+					portalsRequired--;
+					curpathlength++;
 				}
-				curpathlength++;
 			}
-			first = false;
 		}
-		
+
 		function getDir(c1, c2) {
 			if(!c1 || !c2) return null;
 			let co1 = c1.split(',').map(Number), co2 = c2.split(',').map(Number);
@@ -89,8 +71,7 @@ export default {
 			let row = [];
 			for(let j = 0; j < gridwidth; j++) {
 				let type = 'D', rotation = 0, movable = 0, extra = '', ansRot = 0;
-				let coord = i+','+j;
-				let pathIndex = fullpath.indexOf(coord);
+				let coord = i+','+j, pathIndex = fullpath.indexOf(coord);
 
 				if(pathIndex !== -1) {
 					let prevD = getDir(coord, fullpath[pathIndex-1]);
@@ -112,20 +93,18 @@ export default {
 						if(Math.abs(d1 - d2) == 2) { 
 							type = 'I'; rotation = d1 % 2; 
 						} else { 
-							type = 'L'; // 2. 해결: 정답 경로에서의 L자 타일 회전 공식을 CSS 기준에 맞춰 완벽 보정
+							// [수정 포인트 2] L자 타일 정답 방향 보정 (Down-Right 예외 처리)
 							if ((d1 == 0 && d2 == 3) || (d1 == 3 && d2 == 0)) rotation = 0;
-							else if ((d1 == 0 && d2 == 1) || (d1 == 1 && d2 == 0)) rotation = 1;
-							else if ((d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1)) rotation = 2;
-							else if ((d1 == 2 && d2 === 3) || (d1 == 3 && d2 == 2)) rotation = 3;
+							else rotation = Math.max(d1, d2);
+							type = 'L';
 						}
 					}
-					ansRot = rotation;
+					ansRot = rotation; // 정답 각도 저장
 					movable = (type == 'P' ? 0 : 1); 
-					if(movable) rotation = (rotation + Math.floor(Math.random()*3)+1)%4;
+					if(movable) rotation = (rotation + Math.floor(Math.random()*4))%4;
 				} else {
-					let r = Math.random();
-					type = r < 0.3 ? 'D' : (r < 0.65 ? 'I' : 'L');
-					rotation = Math.floor(Math.random()*4); movable = type !== 'D' ? 1 : 0;
+					type = (Math.random() < 0.3) ? 'D' : (Math.random() < 0.6 ? 'I' : 'L');
+					rotation = Math.floor(Math.random()*4); movable = (type !== 'D');
 					ansRot = rotation;
 				}
 				row.push([type, rotation, movable, '', extra, ansRot]);
@@ -133,7 +112,7 @@ export default {
 			grid.value.push(row);
 		}
 		
-		const themeColor = '#FF4500'; // 주황색 고정
+		const themeColor = '#FF4500'; 
 		let shapes = [1, 2, 3, 4];
 
 		return { 
@@ -160,7 +139,7 @@ export default {
 					 }" @click="rotate(tile, rowIndex, colIndex)">
 					<div :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0])"></div>
 					<div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
-					<div v-if="tile[0] != 'X'" :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" 
+					<div :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" 
 						 :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37', transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*-90+'deg)' : 'rotate('+tile[1]*-90+'deg)' }"></div>
 					<div v-if="tile[0] == 'P'" class="portalsymbol active" :style="{ transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*-90+'deg)' : 'rotate('+tile[1]*-90+'deg)' }">
 						{{shapes[tile[4]]}}
