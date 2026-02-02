@@ -123,17 +123,25 @@ body {
     z-index: 2;
 }
 
-/* 6. 포털 기호 및 UI 텍스트 */
+/* 6. 포털 기호 및 UI 텍스트 - 확실하게 정중앙 노출 */
 .portalsymbol {
     font-family: "Grandiflora One", cursive;
-    height: 50%; width: 50%; position: absolute; z-index: 3;
-    color: #d4af37 !important;
-    font-size: min(72px, calc(4.8vw));
-    font-weight: bold;
-    text-align: center;
-    top: -6%; left: 25%;
-    transform-origin: 50.375% 111.25%;
-    user-select: none;
+    position: absolute;
+    inset: 0; /* 전체 영역 차지 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100 !important; /* 모든 노드 위에 표시 */
+    color: #1a1c16 !important; /* 배경색과 대비되는 어두운 색 */
+    font-size: 1.8rem;
+    font-weight: 900;
+    pointer-events: none; /* 클릭 방해 금지 */
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8); /* 글자 테두리 효과 */
+}
+
+/* 시작/끝점 가시성 확보 */
+.start-node, .end-node {
+    background-color: transparent !important; /* 사각형 배경 제거 */
 }
 
 .portalsymbol.active {
@@ -148,5 +156,6 @@ body {
 .modal-content { background-color: #1a1c16; color: #e0d7c6; border: 1px solid #4a4d44; }
 .modal-title { font-family: "Grandiflora One"; }
 .modal-body { font-family: "Noto Serif KR"; line-height: 1.6; }
+
 
 
