@@ -81,26 +81,46 @@ body {
 
 /* 5. 회로 선(Node) 및 에너지 흐름 디자인 */
 
-/* 일반 노드 기본 스타일 (금색) */
+/* 일반 노드 기본 스타일 */
 .i-node, .lv-node, .lh-node, .circle-node, .portal-node, .bigcircle-node {
-    background-color: #d4af37; /* !important 제거하여 우선순위 조절 */
+    background-color: #d4af37; /* 기본 금색 */
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
     z-index: 1;
 }
 
-/* 시작점과 끝점 내부의 노드들은 강제로 주황색으로 표시 */
-.start-node, .end-node,
-.start-node ~ .circle-node, .end-node ~ .circle-node,
-.start-node ~ .i-node, .end-node ~ .i-node {
-    background-color: #FF4500 !important;
-    box-shadow: 0 0 20px #FF4500;
+/* 시작점(S)과 끝점(E) 타일 자체의 배경색 제거 (배경으로 튀어나가는 현상 방지) */
+.start-node, .end-node {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* app.js에서 getColour()를 통해 실시간으로 주입되는 주황색 불빛 스타일 */
+.tile div[style*="background-color: rgb(255, 69, 0)"], 
+.tile div[style*="background-color: #FF4500"],
+.tile div[style*="background-color: #fc"],
+.tile div[style*="background-color: #aafc"] {
+    box-shadow: 0 0 15px rgba(255, 69, 0, 0.8) !important;
     z-index: 5;
 }
 
-/* 시작/끝점 자체의 발광 효과 보강 */
-.start-node, .end-node {
-    background-color: #FF4500 !important;
-    box-shadow: 0 0 25px 5px rgba(255, 69, 0, 0.7);
+.i-node { height: 96%; width: 20%; position: absolute; left: 40%; top: 2%; }
+.lv-node { height: 50%; width: 20%; position: absolute; left: 40%; top: 2%; }
+.lh-node { height: 20%; width: 49%; position: absolute; left: 49%; top: 40%; }
+
+.circle-node {
+    height: 50%; width: 50%; border-radius: 50%;
+    position: absolute; top: 25%; left: 25%;
+    z-index: 2;
+}
+
+.portal-node {
+    height: 50%; width: 20%; position: absolute; top: 48%; left: 40%;
+}
+
+.bigcircle-node {
+    height: 80%; width: 80%; border-radius: 50%;
+    position: absolute; top: 10%; left: 10%;
+    z-index: 2;
 }
 
 /* 6. 포털 기호 및 UI 텍스트 */
@@ -128,4 +148,5 @@ body {
 .modal-content { background-color: #1a1c16; color: #e0d7c6; border: 1px solid #4a4d44; }
 .modal-title { font-family: "Grandiflora One"; }
 .modal-body { font-family: "Noto Serif KR"; line-height: 1.6; }
+
 
