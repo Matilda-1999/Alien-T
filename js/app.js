@@ -5,29 +5,34 @@ export default {
         const queryString = window.location.search;
         const params = new URLSearchParams(queryString);
         
-        // 1. 'topsecret' 파라미터 확인 및 설정
+        // 1. 설정 및 파라미터 처리
         const showAnswer = params.get('topsecret') === 'true';
         const gridwidth = params.has('cols') ? parseInt(params.get('cols')) : 12;
         const gridheight = params.has('rows') ? parseInt(params.get('rows')) : 5;
         
-        // 시작점과 끝점 고정
+        // 시작점(왼쪽 위) 및 끝점(오른쪽 열 랜덤 행) 고정
         const start = '0,0';
         const end = Math.floor(Math.random() * gridheight) + ',' + (gridwidth - 1);
         
         const pathlength = Math.floor(Math.random()*(0.2*gridwidth*gridheight) + 0.4*gridwidth*gridheight);
         var path1 = [start], path2 = [end], curpathlength = 2;
         
+        // 타일 탐색 함수
         function getNextTile(coord, p1, p2) {
             const [r, c] = coord.split(',').map(Number);
             const tiles = [];
-            [[r-1, c], [r+1, c], [r, c-1], [r, c+1]].forEach(([nr, nc]) => {
+            const checkDirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+            for (const [dr, dc] of checkDirs) {
+                const nr = r + dr, nc = c + dc;
                 const ntile = nr + ',' + nc;
-                if (nr >= 0 && nr < gridheight && nc >= 0 && nc < gridwidth && !p1.includes(ntile) && !p2.includes(ntile)) tiles.push(ntile);
-            });
+                if (nr >= 0 && nr < gridheight && nc >= 0 && nc < gridwidth && !p1.includes(ntile) && !p2.includes(ntile)) {
+                    tiles.push(ntile);
+                }
+            }
             return tiles.length > 0 ? tiles[Math.floor(Math.random() * tiles.length)] : false;
         }
         
-        // 경로 생성 로직 (무한 루프 방지 포함)
+        // 2. 경로 생성 로직 (무한 로딩 방지 안전장치 포함)
         let first = true, safety = 0;
         while(curpathlength < pathlength && safety < 1000) {
             safety++;
@@ -70,29 +75,38 @@ export default {
         const grid = ref([]), dirs = ['down', 'left', 'up', 'right'];
         let portalnum = 0, portals = {};
 
+        // 3. 그리드 데이터 구성 (회전 로직 정밀 교정)
         for(let i = 0; i < gridheight; i++) {
             let row = [];
             for(let j = 0; j < gridwidth; j++) {
                 let type = 'D', rotation = 0, movable = 0, extra = '';
                 let coord = i+','+j, pathIdx = fullpath.indexOf(coord);
+
                 if(pathIdx !== -1) {
-                    if(start === coord) { type = 'S'; rotation = dirs.indexOf(getDir(coord, fullpath[pathIdx+1])); }
-                    else if(end === coord) { type = 'E'; rotation = dirs.indexOf(getDir(coord, fullpath[pathIdx-1])); }
-                    else {
-                        let prev = getDir(coord, fullpath[pathIdx-1]), next = getDir(coord, fullpath[pathIdx+1]);
-                        if(next === 'portal' || prev === 'portal') {
+                    if(start === coord) { 
+                        type = 'S'; rotation = dirs.indexOf(getDir(coord, fullpath[pathIdx+1])); 
+                    } else if(end === coord) { 
+                        type = 'E'; rotation = dirs.indexOf(getDir(coord, fullpath[pathIdx-1])); 
+                    } else {
+                        let prevD = getDir(coord, fullpath[pathIdx-1]), nextD = getDir(coord, fullpath[pathIdx+1]);
+                        if(nextD === 'portal' || prevD === 'portal') {
                             type = 'P';
                             if(portals[coord] === undefined) {
-                                let other = next === 'portal' ? fullpath[pathIdx+1] : fullpath[pathIdx-1];
+                                let other = nextD === 'portal' ? fullpath[pathIdx+1] : fullpath[pathIdx-1];
                                 portals[coord] = portalnum; portals[other] = portalnum; extra = portalnum++;
                             } else extra = portals[coord];
-                            rotation = dirs.indexOf(next === 'portal' ? prev : next);
-                        } else if(Math.abs(dirs.indexOf(next) - dirs.indexOf(prev)) === 2) {
-                            type = 'I'; rotation = dirs.indexOf(next) % 2;
+                            rotation = dirs.indexOf(nextD === 'portal' ? prevD : nextD);
                         } else {
-                            type = 'L'; 
-                            let d1 = dirs.indexOf(prev), d2 = dirs.indexOf(next);
-                            rotation = (Math.abs(d1-d2) === 3) ? 0 : Math.max(d1, d2);
+                            let d1 = dirs.indexOf(prevD), d2 = dirs.indexOf(nextD);
+                            if(Math.abs(d1 - d2) === 2) { 
+                                type = 'I'; rotation = d1 % 2; 
+                            } else { 
+                                type = 'L';
+                                if ((d1 === 0 && d2 === 3) || (d1 === 3 && d2 === 0)) rotation = 0;
+                                else if ((d1 === 0 && d2 === 1) || (d1 === 1 && d2 === 0)) rotation = 1;
+                                else if ((d1 === 1 && d2 === 2) || (d1 === 2 && d2 === 1)) rotation = 2;
+                                else if ((d1 === 2 && d2 === 3) || (d1 === 3 && d2 === 2)) rotation = 3;
+                            }
                         }
                     }
                     movable = (type === 'P' ? Math.random() < 0.3 : Math.random() < 0.8) ? 1 : 0;
@@ -106,30 +120,27 @@ export default {
             grid.value.push(row);
         }
         
-        const themeColor = '#FF4500';
+        const themeColor = '#FF4500'; 
         let shapes = Array.from({length: portalnum}, (_, i) => i + 1);
 
-        // 오류 해결: 템플릿에서 호출하는 함수 정의
-        const checkWinStatus = () => {
-            const [er, ec] = end.split(',').map(Number);
-            return grid.value[er] && grid.value[er][ec][3] !== '';
-        };
-
         return { 
-            grid, shapes, themeColor, checkWinStatus,
+            grid, shapes, themeColor,
             getNodeClass: (t, alt=false) => {
                 const m = { "I": "i-node", "L": alt ? "lh-node" : "lv-node", "S": "start-node", "E": "end-node", "P": "portal-node", "D": "deadend-node" };
                 return m[t] || "";
             },
             getMovableClass: (a) => a == 0 ? "tile-immovable" : "tile-movable",
-            getColour: (tile) => (tile[0] === 'S' || tile[0] === 'E' || tile[3] !== '') ? themeColor : '',
+            getColour: (tile, r, c) => (tile[0] === 'S' || tile[0] === 'E' || (showAnswer && fullpath.includes(r + ',' + c))) ? themeColor : '',
             rotate: (t, r, c) => { if(t[2]) grid.value[r][c][1] = (grid.value[r][c][1] + 1)%4; },
+            checkWinStatus: () => {
+                const [er, ec] = end.split(',').map(Number);
+                return grid.value[er] && grid.value[er][ec][3] !== ''; // 전류 로직 연동 필요 시 수정
+            },
             isCorrectPath: (r, c) => showAnswer && fullpath.includes(r + ',' + c)
         };
     },
     template: `
     <div class="d-flex flex-column align-items-center">
-        <h2 class="grandiflora-one-regular mb-4" :style="{ visibility: checkWinStatus() ? 'visible' : 'hidden', color: themeColor }">전류가 연결되었습니다!</h2>
         <div v-for="(row, rowIndex) in grid" :key="rowIndex">
             <div style="display: inline-block" v-for="(tile, colIndex) in row" :key="colIndex">
                 <div :class="['tile', getMovableClass(tile[2])]" 
@@ -138,11 +149,11 @@ export default {
                         outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none',
                         boxShadow: isCorrectPath(rowIndex, colIndex) ? '0 0 15px #FF3300' : 'none'
                      }" @click="rotate(tile, rowIndex, colIndex)">
-                    <div :style="{ backgroundColor: getColour(tile) }" :class="getNodeClass(tile[0])"></div>
-                    <div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(tile) }" :class="getNodeClass(tile[0],true)"></div>
+                    <div :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0])"></div>
+                    <div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
                     <div :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" 
                          :style="{ 
-                            backgroundColor: getColour(tile), 
+                            backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37', 
                             transform: isCorrectPath(rowIndex, colIndex) ? 'rotate(0deg)' : 'rotate('+tile[1]*-90+'deg)' 
                          }"></div>
                     <div v-if="tile[0] == 'P'" class="portalsymbol active" 
