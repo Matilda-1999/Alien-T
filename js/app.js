@@ -6,53 +6,49 @@ export default {
         const params = new URLSearchParams(queryString);
         const showAnswer = params.get('topsecret') === 'true';
         
-        // 1. 설정: 행 8줄 고정, 열은 파라미터 따름 (기본 12)
-        const gridwidth = params.has('cols') ? parseInt(params.get('cols')) : 12;
+        const gridwidth = 12; 
         const gridheight = 8; 
 
-        // 2. 정답 경로 정의 (패턴 A)
-        // [행, 열, 타입, 정답회전, 포털번호(있을경우)]
+        // [방향 기준] 0: 아래(Down), 1: 왼쪽(Left), 2: 위(Up), 3: 오른쪽(Right)
+        
+        // 패턴 A
         const patternA = [
-            [0,0,'S',3], [0,1,'I',1], [0,2,'P',1,0], // 시작 -> 포털1
-            [2,4,'P',3,0], [2,5,'L',0], [3,5,'I',0], [4,5,'P',0,1], // 포털1 -> 포털2
-            [1,1,'P',2,1], [1,2,'L',1], [1,3,'I',1], [1,4,'P',1,2], // 포털2 -> 포털3
-            [7,10,'P',3,2], [7,11,'E',1] // 포털3 -> 종료
+            [0,0,'S',3], [0,1,'I',1], [0,2,'P',1,0], // 시작(0,0) -> 오른쪽 -> 포털0입구(왼쪽바라봄)
+            [2,5,'P',3,0], [2,6,'L',0], [3,6,'I',0], [4,6,'L',1], [4,5,'P',1,1], // 포털0출구(우) -> L -> I -> L -> 포털1입구(좌)
+            [6,2,'P',3,1], [6,3,'L',2], [5,3,'I',0], [4,3,'L',0], [4,4,'P',3,2], // 포털1출구(우) -> L -> I -> L -> 포털2입구(우)
+            [1,9,'P',0,2], [2,9,'I',0], [3,9,'L',1], [3,10,'I',1], [3,11,'E',1]  // 포털2출구(하) -> I -> L -> I -> 종료(3,11)
         ];
 
-        // 3. 정답 경로 정의 (예시: B)
+        // 패턴 B
         const patternB = [
-            [0,0,'S',3], [1,0,'L',0], [1,1,'P',3,0], // 시작 -> 포털1
-            [5,2,'P',1,0], [5,1,'I',1], [5,0,'L',3], [6,0,'P',2,1], // 포털1 -> 포털2
-            [2,8,'P',0,1], [1,8,'L',2], [1,9,'I',1], [1,10,'P',1,2], // 포털2 -> 포털3
-            [7,5,'P',2,2], [7,6,'I',1], [7,11,'E',1] // 포털3 -> 종료
+            [0,0,'S',0], [1,0,'I',0], [2,0,'L',3], [2,1,'P',3,0], // 시작(0,0) -> 아래 -> L -> 포털0입구(우)
+            [5,3,'P',1,0], [5,2,'L',2], [4,2,'I',0], [3,2,'P',2,1], // 포털0출구(좌) -> L -> I -> 포털1입구(위)
+            [1,5,'P',0,1], [2,5,'L',1], [2,6,'I',1], [2,7,'P',1,2], // 포털1출구(하) -> L -> I -> 포털2입구(좌)
+            [7,10,'P',2,2], [6,10,'L',3], [6,11,'E',3] // 포털2출구(위) -> L -> 종료(6,11)
         ];
 
-        const selectedPath = Math.random() < 0.5 ? patternA : patternB;
-        const fullpathCoords = selectedPath.map(p => p[0] + ',' + p[1]);
+        const selectedPattern = Math.random() < 0.5 ? patternA : patternB;
+        const fullpathCoords = selectedPattern.map(p => p[0] + ',' + p[1]);
 
         const grid = ref([]);
-        const themeColor = '#FF4500';
-        const shapes = [1, 2, 3]; // 포털 3쌍 고정
+        const themeColor = '#FF4500'; 
+        const shapes = [1, 2, 3]; 
 
-        // 4. 그리드 생성
         for (let i = 0; i < gridheight; i++) {
             let row = [];
             for (let j = 0; j < gridwidth; j++) {
                 let coord = i + ',' + j;
-                let pathNode = selectedPath.find(p => (p[0] + ',' + p[1]) === coord);
+                let pathNode = selectedPattern.find(p => (p[0] + ',' + p[1]) === coord);
                 
                 let type, rotation, movable, extra, ansRot;
 
                 if (pathNode) {
-                    // 정답 경로 타일
                     type = pathNode[2];
-                    ansRot = pathNode[3];
+                    ansRot = pathNode[3]; 
                     extra = pathNode[4] !== undefined ? pathNode[4] : '';
                     movable = (type === 'P' ? 0 : 1);
-                    // 초기 위치는 랜덤하게 섞음
                     rotation = movable ? (ansRot + Math.floor(Math.random() * 3) + 1) % 4 : ansRot;
                 } else {
-                    // 배경 타일 (장식용)
                     let r = Math.random();
                     type = r < 0.3 ? 'D' : (r < 0.6 ? 'I' : 'L');
                     ansRot = Math.floor(Math.random() * 4);
@@ -75,7 +71,7 @@ export default {
             getColour: (tile, r, c) => (tile[0] === 'S' || tile[0] === 'E' || (showAnswer && fullpathCoords.includes(r + ',' + c))) ? themeColor : '',
             rotate: (t, r, c) => { if (t[2]) grid.value[r][c][1] = (grid.value[r][c][1] + 1) % 4; },
             isCorrectPath: (r, c) => showAnswer && fullpathCoords.includes(r + ',' + c),
-            checkWinStatus: () => false // 검증 로직 별도
+            checkWinStatus: () => false 
         };
     },
     template: `
@@ -85,8 +81,7 @@ export default {
                 <div :class="['tile', getMovableClass(tile[2])]" 
                      :style="{ 
                         transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*90+'deg)' : 'rotate('+tile[1]*90+'deg)',
-                        outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none',
-                        boxShadow: isCorrectPath(rowIndex, colIndex) ? '0 0 15px #FF3300' : 'none'
+                        outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none'
                      }" @click="rotate(tile, rowIndex, colIndex)">
                     <div :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0])"></div>
                     <div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
@@ -101,4 +96,3 @@ export default {
         </div>
     </div>`
 }
-
