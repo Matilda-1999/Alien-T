@@ -1,6 +1,6 @@
 // run with npx serve
 
-import { ref } from 'vue'
+import { ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 export default {
 	setup() {
 		const queryString = window.location.search;
@@ -656,3 +656,4 @@ template: `<div>
 </div>`
 }
 // :style="'rotate: '+(tile[0] === 'P' ? 0 : tile[1]*90)+'deg;'"
+
