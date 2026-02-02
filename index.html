@@ -37,6 +37,15 @@
         <game-board></game-board>
 
 
+        <script type="module">
+        import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+        import App from './js/app.js';
+
+        const app = createApp({});
+        app.component('game-board', App); // app.js를 'game-board'라는 이름의 컴포넌트로 등록
+        app.mount('#app');
+    </script>
+        
     <style>
         @keyframes fadein {
             from { opacity: 0; transform: translateY(10px); }
@@ -45,6 +54,7 @@
     </style>
 </body>
 </html>
+
 
 
 
