@@ -4,11 +4,13 @@ export default {
     setup() {
         const queryString = window.location.search;
         const params = new URLSearchParams(queryString);
+        
+        // 1. 'topsecret' 파라미터 확인 및 설정
         const showAnswer = params.get('topsecret') === 'true';
         const gridwidth = params.has('cols') ? parseInt(params.get('cols')) : 12;
         const gridheight = params.has('rows') ? parseInt(params.get('rows')) : 5;
         
-        // 시작점(0,0), 끝점(오른쪽 열 랜덤) 고정
+        // 시작점과 끝점 고정
         const start = '0,0';
         const end = Math.floor(Math.random() * gridheight) + ',' + (gridwidth - 1);
         
@@ -25,7 +27,7 @@ export default {
             return tiles.length > 0 ? tiles[Math.floor(Math.random() * tiles.length)] : false;
         }
         
-        // 무한 로딩 방지 안전장치
+        // 경로 생성 로직 (무한 루프 방지 포함)
         let first = true, safety = 0;
         while(curpathlength < pathlength && safety < 1000) {
             safety++;
@@ -73,7 +75,6 @@ export default {
             for(let j = 0; j < gridwidth; j++) {
                 let type = 'D', rotation = 0, movable = 0, extra = '';
                 let coord = i+','+j, pathIdx = fullpath.indexOf(coord);
-
                 if(pathIdx !== -1) {
                     if(start === coord) { type = 'S'; rotation = dirs.indexOf(getDir(coord, fullpath[pathIdx+1])); }
                     else if(end === coord) { type = 'E'; rotation = dirs.indexOf(getDir(coord, fullpath[pathIdx-1])); }
@@ -100,30 +101,35 @@ export default {
                     type = Math.random() < 0.3 ? 'D' : (Math.random() < 0.5 ? 'I' : 'L');
                     rotation = Math.floor(Math.random()*4); movable = type !== 'D' ? 1 : 0;
                 }
-                row.push([type, rotation, movable, '', extra]); // extra에 포털 번호 저장
+                row.push([type, rotation, movable, '', extra]); 
             }
             grid.value.push(row);
         }
         
-        const themeColor = '#FF4500'; // 색상 고정
+        const themeColor = '#FF4500';
         let shapes = Array.from({length: portalnum}, (_, i) => i + 1);
 
+        // 오류 해결: 템플릿에서 호출하는 함수 정의
+        const checkWinStatus = () => {
+            const [er, ec] = end.split(',').map(Number);
+            return grid.value[er] && grid.value[er][ec][3] !== '';
+        };
+
         return { 
-            grid, shapes, themeColor,
+            grid, shapes, themeColor, checkWinStatus,
             getNodeClass: (t, alt=false) => {
                 const m = { "I": "i-node", "L": alt ? "lh-node" : "lv-node", "S": "start-node", "E": "end-node", "P": "portal-node", "D": "deadend-node" };
                 return m[t] || "";
             },
             getMovableClass: (a) => a == 0 ? "tile-immovable" : "tile-movable",
+            getColour: (tile) => (tile[0] === 'S' || tile[0] === 'E' || tile[3] !== '') ? themeColor : '',
             rotate: (t, r, c) => { if(t[2]) grid.value[r][c][1] = (grid.value[r][c][1] + 1)%4; },
             isCorrectPath: (r, c) => showAnswer && fullpath.includes(r + ',' + c)
         };
     },
     template: `
     <div class="d-flex flex-column align-items-center">
-        <h2 class="grandiflora-one-regular mb-4" :style="{ visibility: checkWinStatus() ? 'visible' : 'hidden', color: themeColor }">
-            전류가 연결되었습니다. 무대 장치가 작동합니다!
-        </h2>
+        <h2 class="grandiflora-one-regular mb-4" :style="{ visibility: checkWinStatus() ? 'visible' : 'hidden', color: themeColor }">전류가 연결되었습니다!</h2>
         <div v-for="(row, rowIndex) in grid" :key="rowIndex">
             <div style="display: inline-block" v-for="(tile, colIndex) in row" :key="colIndex">
                 <div :class="['tile', getMovableClass(tile[2])]" 
@@ -132,21 +138,15 @@ export default {
                         outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none',
                         boxShadow: isCorrectPath(rowIndex, colIndex) ? '0 0 15px #FF3300' : 'none'
                      }" @click="rotate(tile, rowIndex, colIndex)">
-                    
-                    <div :style="{ backgroundColor: (tile[0] === 'S' || tile[0] === 'E' || tile[3] !== '') ? themeColor : '#d4af37' }" :class="getNodeClass(tile[0])"></div>
-                    
-                    <div v-if="tile[0] == 'L'" :style="{ backgroundColor: (tile[3] !== '') ? themeColor : '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
-                    
+                    <div :style="{ backgroundColor: getColour(tile) }" :class="getNodeClass(tile[0])"></div>
+                    <div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(tile) }" :class="getNodeClass(tile[0],true)"></div>
                     <div :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" 
                          :style="{ 
-                            backgroundColor: (tile[0] === 'S' || tile[0] === 'E' || tile[3] !== '') ? themeColor : '#d4af37', 
+                            backgroundColor: getColour(tile), 
                             transform: isCorrectPath(rowIndex, colIndex) ? 'rotate(0deg)' : 'rotate('+tile[1]*-90+'deg)' 
                          }"></div>
-                    
                     <div v-if="tile[0] == 'P'" class="portalsymbol active" 
-                         :style="{ 
-                            transform: isCorrectPath(rowIndex, colIndex) ? 'rotate(0deg)' : 'rotate('+tile[1]*-90+'deg)' 
-                         }">
+                         :style="{ transform: isCorrectPath(rowIndex, colIndex) ? 'rotate(0deg)' : 'rotate('+tile[1]*-90+'deg)' }">
                         {{ shapes[tile[4]] }}
                     </div>
                 </div>
@@ -155,4 +155,3 @@ export default {
         </div>
     </div>`
 }
-
