@@ -1,3 +1,5 @@
+//0203-2
+
 import { ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 
 export default {
@@ -6,25 +8,26 @@ export default {
         const params = new URLSearchParams(queryString);
         const showAnswer = params.get('topsecret') === 'true';
         
+        // 1. 세로 8줄 확장 및 가로 12줄 고정
         const gridwidth = 12; 
         const gridheight = 8; 
 
-        // [방향 기준] 0: 아래(Down), 1: 왼쪽(Left), 2: 위(Up), 3: 오른쪽(Right)
+        // [방향 가이드] 0:아래(Down), 1:왼쪽(Left), 2:위(Up), 3:오른쪽(Right)
         
-        // 패턴 A
+        // 패턴 A: 지그재그로 하강하며 포털을 타는 구조
         const patternA = [
-            [0,0,'S',3], [0,1,'I',1], [0,2,'P',1,0], // 시작(0,0) -> 오른쪽 -> 포털0입구(왼쪽바라봄)
-            [2,5,'P',3,0], [2,6,'L',0], [3,6,'I',0], [4,6,'L',1], [4,5,'P',1,1], // 포털0출구(우) -> L -> I -> L -> 포털1입구(좌)
-            [6,2,'P',3,1], [6,3,'L',2], [5,3,'I',0], [4,3,'L',0], [4,4,'P',3,2], // 포털1출구(우) -> L -> I -> L -> 포털2입구(우)
-            [1,9,'P',0,2], [2,9,'I',0], [3,9,'L',1], [3,10,'I',1], [3,11,'E',1]  // 포털2출구(하) -> I -> L -> I -> 종료(3,11)
+            [0,0,'S',3], [0,1,'I',1], [0,2,'P',1,0], // 시작(0,0) -> (0,2)포털0(좌)
+            [1,4,'P',0,0], [2,4,'I',0], [3,4,'L',1], [3,5,'P',1,1], // (1,4)포털0(상) -> (3,5)포털1(좌)
+            [5,2,'P',2,1], [4,2,'L',0], [4,1,'I',1], [4,0,'L',3], [5,0,'P',2,2], // (5,2)포털1(하) -> (5,0)포털2(상)
+            [7,8,'P',3,2], [7,9,'I',1], [7,10,'L',2], [6,10,'I',0], [5,10,'L',3], [5,11,'E',1] // (7,8)포털2(좌) -> (5,11)종료
         ];
 
-        // 패턴 B
+        // 패턴 B: 외곽 프레임을 따라 크게 도는 고난도 구조
         const patternB = [
-            [0,0,'S',0], [1,0,'I',0], [2,0,'L',3], [2,1,'P',3,0], // 시작(0,0) -> 아래 -> L -> 포털0입구(우)
-            [5,3,'P',1,0], [5,2,'L',2], [4,2,'I',0], [3,2,'P',2,1], // 포털0출구(좌) -> L -> I -> 포털1입구(위)
-            [1,5,'P',0,1], [2,5,'L',1], [2,6,'I',1], [2,7,'P',1,2], // 포털1출구(하) -> L -> I -> 포털2입구(좌)
-            [7,10,'P',2,2], [6,10,'L',3], [6,11,'E',3] // 포털2출구(위) -> L -> 종료(6,11)
+            [0,0,'S',0], [1,0,'I',0], [2,0,'L',3], [2,1,'P',1,0], // 시작(0,0) -> (2,1)포털0(좌)
+            [0,5,'P',0,0], [1,5,'L',2], [1,6,'I',1], [1,7,'P',1,1], // (0,5)포털0(하) -> (1,7)포털1(좌)
+            [4,9,'P',3,1], [4,10,'L',1], [5,10,'I',0], [6,10,'P',2,2], // (4,9)포털1(우) -> (6,10)포털2(상)
+            [7,3,'P',2,2], [6,3,'L',3], [6,4,'I',1], [6,11,'E',1] // (7,3)포털2(하) -> (6,11)종료
         ];
 
         const selectedPattern = Math.random() < 0.5 ? patternA : patternB;
@@ -32,7 +35,7 @@ export default {
 
         const grid = ref([]);
         const themeColor = '#FF4500'; 
-        const shapes = [1, 2, 3]; 
+        const shapes = [1, 2, 3]; // 포털 3쌍 고정
 
         for (let i = 0; i < gridheight; i++) {
             let row = [];
@@ -81,7 +84,8 @@ export default {
                 <div :class="['tile', getMovableClass(tile[2])]" 
                      :style="{ 
                         transform: isCorrectPath(rowIndex, colIndex) ? 'rotate('+tile[5]*90+'deg)' : 'rotate('+tile[1]*90+'deg)',
-                        outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none'
+                        outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none',
+                        boxShadow: isCorrectPath(rowIndex, colIndex) ? '0 0 15px #FF3300' : 'none'
                      }" @click="rotate(tile, rowIndex, colIndex)">
                     <div :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0])"></div>
                     <div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(tile, rowIndex, colIndex) || '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
