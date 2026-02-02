@@ -121,17 +121,32 @@ export default {
     },
     template: `
     <div class="d-flex flex-column align-items-center">
+        <h2 class="grandiflora-one-regular mb-4" :style="{ visibility: checkWinStatus() ? 'visible' : 'hidden', color: themeColor }">
+            전류가 연결되었습니다. 무대 장치가 작동합니다!
+        </h2>
         <div v-for="(row, rowIndex) in grid" :key="rowIndex">
             <div style="display: inline-block" v-for="(tile, colIndex) in row" :key="colIndex">
                 <div :class="['tile', getMovableClass(tile[2])]" 
                      :style="{ 
-                        transform: 'rotate('+tile[1]*90+'deg)',
-                        outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none'
+                        transform: isCorrectPath(rowIndex, colIndex) ? 'rotate(0deg)' : 'rotate('+tile[1]*90+'deg)',
+                        outline: isCorrectPath(rowIndex, colIndex) ? '3px solid #FF3300' : 'none',
+                        boxShadow: isCorrectPath(rowIndex, colIndex) ? '0 0 15px #FF3300' : 'none'
                      }" @click="rotate(tile, rowIndex, colIndex)">
-                    <div :style="{ backgroundColor: (tile[0] === 'S' || tile[0] === 'E') ? themeColor : '#d4af37' }" :class="getNodeClass(tile[0])"></div>
-                    <div v-if="tile[0] == 'L'" :style="{ backgroundColor: '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
-                    <div :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" :style="{ backgroundColor: (tile[0] === 'S' || tile[0] === 'E') ? themeColor : '#d4af37', transform: 'rotate('+tile[1]*-90+'deg)' }"></div>
-                    <div v-if="tile[0] == 'P'" class="portalsymbol active" :style="{ transform: 'rotate('+tile[1]*-90+'deg)' }">
+                    
+                    <div :style="{ backgroundColor: (tile[0] === 'S' || tile[0] === 'E' || tile[3] !== '') ? themeColor : '#d4af37' }" :class="getNodeClass(tile[0])"></div>
+                    
+                    <div v-if="tile[0] == 'L'" :style="{ backgroundColor: (tile[3] !== '') ? themeColor : '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
+                    
+                    <div :class="tile[0] === 'P' ? 'bigcircle-node' : 'circle-node'" 
+                         :style="{ 
+                            backgroundColor: (tile[0] === 'S' || tile[0] === 'E' || tile[3] !== '') ? themeColor : '#d4af37', 
+                            transform: isCorrectPath(rowIndex, colIndex) ? 'rotate(0deg)' : 'rotate('+tile[1]*-90+'deg)' 
+                         }"></div>
+                    
+                    <div v-if="tile[0] == 'P'" class="portalsymbol active" 
+                         :style="{ 
+                            transform: isCorrectPath(rowIndex, colIndex) ? 'rotate(0deg)' : 'rotate('+tile[1]*-90+'deg)' 
+                         }">
                         {{ shapes[tile[4]] }}
                     </div>
                 </div>
@@ -140,3 +155,4 @@ export default {
         </div>
     </div>`
 }
+
