@@ -109,17 +109,18 @@ export default {
             <div style="display: inline-block" v-for="(tile, c) in row">
                 <div :class="['tile', tile[2] === 0 ? 'tile-immovable' : 'tile-movable']" 
                      :style="{ 
-                        /* [최종 보정] L자 타일은 기본 기호(┌)에 맞춰 +2(180도) 회전 오프셋 부여 */
-                        transform: 'rotate(' + (tile[1] + (tile[0] === 'L' ? 2 : 0)) * 90 + 'deg)', 
+                        transform: 'rotate(' + tile[1] * 90 + 'deg)', 
                         boxShadow: getColour(r, c) ? '0 0 15px '+themeColor : 'none', 
                         border: getColour(r, c) ? '2px solid '+themeColor : '1px solid #4a4d44' 
                      }" @click="rotate(tile, r, c)">
                     <div :style="{ backgroundColor: getColour(r, c) || '#d4af37' }" :class="getNodeClass(tile[0])"></div>
                     <div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(r, c) || '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
-                    <div class="circle-node" :style="{ backgroundColor: getColour(r, c) || '#d4af37', transform: 'rotate(' + (tile[1] + (tile[0] === 'L' ? 2 : 0)) * -90 + 'deg)' }"></div>
-                    <div v-if="tile[0] == 'P'" class="portalsymbol active" :style="{ transform: 'rotate(' + (tile[1] + (tile[0] === 'L' ? 2 : 0)) * -90 + 'deg)' }">{{tile[4] + 1}}</div>
+                    <div class="circle-node" :style="{ backgroundColor: getColour(r, c) || '#d4af37', transform: 'rotate(' + tile[1] * -90 + 'deg)' }"></div>
+                    <div v-if="tile[0] == 'P'" class="portalsymbol active" :style="{ transform: 'rotate(' + tile[1] * -90 + 'deg)' }">{{tile[4] + 1}}</div>
                 </div>
             </div>
         </div>
     </div>`
 }
+}
+
