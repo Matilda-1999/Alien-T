@@ -13,13 +13,18 @@ export default {
 
         // 사용자 정의 인덱스: 0:┘(좌상), 1:└(우상), 2:┌(우하), 3:┐(좌하)
         // 물리 방향 매핑: 0:하, 1:좌, 2:상, 3:우
-        const getOpenings = (tile) => {
-            const rot = tile[1];
+        const getOpenings = (tile, r, c) => {
+            // topsecret 모드이고 정답 경로 타일인 경우 ansRot(tile[5])를 사용, 아니면 현재 각도(tile[1]) 사용
+            const isCorrect = showAnswer && isCorrectPath(r, c);
+            const rot = isCorrect ? tile[5] : tile[1];
+
             if (tile[0] === 'S' || tile[0] === 'P' || tile[0] === 'E') return [rot];
             if (tile[0] === 'I') return [rot, (rot + 2) % 4];
-            // 0:┘(1,2), 1:└(3,2), 2:┌(3,0), 3:┐(1,0)
-            const l_map = [[1, 2], [3, 2], [3, 0], [1, 0]]; 
-            return l_map[rot] || [];
+            if (tile[0] === 'L') {
+                const l_map = [[1, 2], [3, 2], [3, 0], [1, 0]]; 
+                return l_map[rot] || [];
+            }
+            return [];
         };
 
         // 패턴 A
@@ -137,4 +142,5 @@ export default {
         </div>
     </div>`
 }
+
 
