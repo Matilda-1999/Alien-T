@@ -142,23 +142,39 @@ body {
     z-index: 2;
 }
 
-/* 6. 승리 연출 이미지 스타일 */
+/* 6. 승리 연출 이미지 및 문구 스타일 */
 .victory-image-container {
-    margin: 20px 0;
+    margin: 20px 0 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 가로 중앙 정렬 */
+    text-align: center;  /* 텍스트 중앙 정렬 */
     animation: fadeInLight 1.5s ease-out forwards;
+    width: 100%;
+}
+
+.victory-text {
+    color: #ffffff;      /* 흰색 글씨 */
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    word-break: keep-all; /* 한글 단어 단위 줄바꿈으로 가독성 향상 */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); /* 글자 가독성을 위한 미세한 그림자 */
+    max-width: 800px;
 }
 
 .victory-image {
-    max-width: 600px;
-    width: 90%;
+    max-width: 700px;    /* 이미지 크기 가시성 확보 */
+    width: 95%;
     height: auto;
-    border-radius: 5px;
-    filter: drop-shadow(0 0 15px #FF0000);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.4));
 }
 
 @keyframes fadeInLight {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* 7. 포털 기호 및 UI 텍스트 */
@@ -194,6 +210,7 @@ body {
 .modal-content { background-color: #1a1c16; color: #e0d7c6; border: 1px solid #4a4d44; }
 .modal-title { font-family: "Grandiflora One"; }
 .modal-body { font-family: "Noto Serif KR"; line-height: 1.6; }
+
 
 
 
