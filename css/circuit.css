@@ -102,6 +102,14 @@ body {
     z-index: 5;
 }
 
+.i-node { 
+    height: 96%; 
+    width: 20%; 
+    position: absolute; 
+    left: 40%; 
+    top: 2%; 
+}
+
 .lv-node { 
     height: 50%; 
     width: 20%; 
@@ -167,6 +175,7 @@ body {
 .modal-content { background-color: #1a1c16; color: #e0d7c6; border: 1px solid #4a4d44; }
 .modal-title { font-family: "Grandiflora One"; }
 .modal-body { font-family: "Noto Serif KR"; line-height: 1.6; }
+
 
 
 
