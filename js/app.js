@@ -1,5 +1,3 @@
-//0203-15
-
 import { ref, computed, watch } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 
 export default {
@@ -10,22 +8,6 @@ export default {
         const gridwidth = 12; 
         const gridheight = 8; 
         const themeColor = '#FF0000'; 
-
-        // 사용자 정의 인덱스: 0:┘(좌상), 1:└(우상), 2:┌(우하), 3:┐(좌하)
-        // 물리 방향 매핑: 0:하, 1:좌, 2:상, 3:우
-        const getOpenings = (tile, r, c) => {
-            // topsecret 모드이고 정답 경로 타일인 경우 ansRot(tile[5])를 사용, 아니면 현재 각도(tile[1]) 사용
-            const isCorrect = showAnswer && isCorrectPath(r, c);
-            const rot = isCorrect ? tile[5] : tile[1];
-
-            if (tile[0] === 'S' || tile[0] === 'P' || tile[0] === 'E') return [rot];
-            if (tile[0] === 'I') return [rot, (rot + 2) % 4];
-            if (tile[0] === 'L') {
-                const l_map = [[1, 2], [3, 2], [3, 0], [1, 0]]; 
-                return l_map[rot] || [];
-            }
-            return [];
-        };
 
         // 패턴 A
         const patternA = [
@@ -50,10 +32,29 @@ export default {
             [6,3,'I',0], [6,5,'L',2], [6,6,'L',0], [6,7,'P',3,1], [6,8,'L',1], [6,9,'L',0], [6,10,'I',0], [6,11,'I',0],
             [7,0,'P',3,0], [7,1,'I',1], [7,2,'I',1], [7,3,'L',0], [7,5,'L',1], [7,6,'I',1], [7,7,'L',0], [7,10,'L',1], [7,11,'L',0]
         ];
-        
+                
         const selectedPattern = Math.random() < 0.5 ? patternA : patternB;
         const grid = ref([]);
         const poweredTiles = ref(new Set()); 
+
+        // [오류 해결] helper 함수를 getOpenings보다 먼저 정의하거나 명확하게 선언
+        const checkIsCorrect = (r, c) => selectedPattern.some(p => p[0] === r && p[1] === c);
+
+        // 물리 방향 매핑: 0:하, 1:좌, 2:상, 3:우
+        const getOpenings = (tile, r, c) => {
+            // topsecret 모드일 때 정답 경로면 ansRot(tile[5]) 사용
+            const useAns = showAnswer && checkIsCorrect(r, c);
+            const rot = useAns ? tile[5] : tile[1];
+
+            if (tile[0] === 'S' || tile[0] === 'P' || tile[0] === 'E') return [rot];
+            if (tile[0] === 'I') return [rot, (rot + 2) % 4];
+            if (tile[0] === 'L') {
+                // 0:┘(1,2), 1:└(3,2), 2:┌(3,0), 3:┐(1,0)
+                const l_map = [[1, 2], [3, 2], [3, 0], [1, 0]]; 
+                return l_map[rot] || [];
+            }
+            return [];
+        };
 
         for (let i = 0; i < gridheight; i++) {
             let row = [];
@@ -90,7 +91,7 @@ export default {
                 if (active.has(curr)) continue; active.add(curr);
                 const [r, c] = curr.split(',').map(Number);
                 const tile = grid.value[r][c];
-                const openings = getOpenings(tile);
+                const openings = getOpenings(tile, r, c);
 
                 if (tile[0] === 'P') {
                     const other = selectedPattern.find(p => p[2] === 'P' && p[4] === tile[4] && `${p[0]},${p[1]}` !== curr);
@@ -101,7 +102,7 @@ export default {
                     let nr = r, nc = c;
                     if (dir===0) nr++; else if (dir===1) nc--; else if (dir===2) nr--; else if (dir===3) nc++;
                     if (nr>=0 && nr<gridheight && nc>=0 && nc<gridwidth) {
-                        if (getOpenings(grid.value[nr][nc]).includes((dir+2)%4)) queue.push(`${nr},${nc}`);
+                        if (getOpenings(grid.value[nr][nc], nr, nc).includes((dir+2)%4)) queue.push(`${nr},${nc}`);
                     }
                 });
             }
@@ -123,7 +124,7 @@ export default {
             },
             getColour: (r, c) => (showAnswer || poweredTiles.value.has(`${r},${c}`)) ? themeColor : '',
             rotate: (t, r, c) => { if (t[2]) grid.value[r][c][1] = (grid.value[r][c][1] + 1) % 4; },
-            isCorrectPath: (r, c) => showAnswer && selectedPattern.some(p => p[0] === r && p[1] === c)
+            isCorrectPath: (r, c) => showAnswer && checkIsCorrect(r, c) // helper 함수 사용
         };
     },
     template: `
@@ -142,6 +143,3 @@ export default {
         </div>
     </div>`
 }
-
-
-
