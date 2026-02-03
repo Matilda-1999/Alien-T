@@ -111,8 +111,13 @@ export default {
         <h2 :style="{ opacity: isGameWon ? 1 : 0, color: themeColor, transition: 'opacity 0.5s' }">조명 장치가 작동합니다!</h2>
         
         <div v-if="isGameWon" class="victory-image-container">
+            <p class="victory-text">
+                조명 장치 뒤에서 펄럭이는 종이 하나를 발견했다. <br>
+                작동하면 기계가 작동을 감지해 곡선을 그리는 형태다. <br>
+                작동한 시간을 대강 유추해 볼 수 있을 듯하다.
+            </p>
             <img :src="patternType === 'A' ? './light_line1.png' : './light_line2.png'" class="victory-image">
-        </div>
+    </div>
 
         <div v-for="(row, r) in grid" :key="'r-'+r">
             <div style="display: inline-block" v-for="(tile, c) in row" :key="'c-'+r+'-'+c">
@@ -131,6 +136,7 @@ export default {
         </div>
     </div>`
 };
+
 
 
 
