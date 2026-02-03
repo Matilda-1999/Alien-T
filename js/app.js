@@ -104,7 +104,7 @@ export default {
     },
     template: `
     <div class="d-flex flex-column align-items-center">
-        <h2 :style="{ opacity: isGameWon ? 1 : 0, color: themeColor, transition: 'opacity 0.5s' }">무대 장치 가동 완료!</h2>
+        <h2 :style="{ opacity: isGameWon ? 1 : 0, color: themeColor, transition: 'opacity 0.5s' }">조명 장치가 작동합니다!</h2>
         <div v-for="(row, r) in grid" :key="'row-'+r">
             <div style="display: inline-block" v-for="(tile, c) in row" :key="'tile-'+r+'-'+c">
                 <div :class="['tile', tile[2] === 0 ? 'tile-immovable' : 'tile-movable']" 
@@ -125,6 +125,7 @@ export default {
         </div>
     </div>`
 };
+
 
 
 
