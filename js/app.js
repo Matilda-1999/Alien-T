@@ -1,4 +1,4 @@
-//0203-16
+//0203-17
 
 import { ref, computed, watch } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 
@@ -104,7 +104,7 @@ export default {
     },
     template: `
     <div class="d-flex flex-column align-items-center">
-        <h2 :style="{ opacity: isGameWon ? 1 : 0, color: themeColor, transition: 'opacity 0.5s' }">조명 장치가 작동합니다!</h2>
+        <h2 :style="{ opacity: isGameWon ? 1 : 0, color: themeColor, transition: 'opacity 0.5s' }">무대 장치 가동 완료!</h2>
         <div v-for="(row, r) in grid" :key="'row-'+r">
             <div style="display: inline-block" v-for="(tile, c) in row" :key="'tile-'+r+'-'+c">
                 <div :class="['tile', tile[2] === 0 ? 'tile-immovable' : 'tile-movable']" 
@@ -113,15 +113,19 @@ export default {
                         boxShadow: getColour(r, c) ? '0 0 15px '+themeColor : 'none', 
                         border: getColour(r, c) ? '2px solid '+themeColor : '1px solid #4a4d44' 
                      }" @click="rotate(tile, r, c)">
+                    
                     <div :style="{ backgroundColor: getColour(r, c) || '#d4af37' }" :class="getNodeClass(tile[0])"></div>
                     <div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(r, c) || '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
-                    <div class="circle-node" :style="{ backgroundColor: getColour(r, c) || '#d4af37', transform: 'rotate(' + tile[1] * -90 + 'deg)' }"></div>
+                    
+                    <div v-if="tile[0] !== 'I'" class="circle-node" :style="{ backgroundColor: getColour(r, c) || '#d4af37', transform: 'rotate(' + tile[1] * -90 + 'deg)' }"></div>
+                    
                     <div v-if="tile[0] == 'P'" class="portalsymbol active" :style="{ transform: 'rotate(' + tile[1] * -90 + 'deg)' }">{{tile[4] + 1}}</div>
                 </div>
             </div>
         </div>
     </div>`
 };
+
 
 
 
