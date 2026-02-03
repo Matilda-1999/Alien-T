@@ -111,7 +111,7 @@ export default {
         <h2 :style="{ opacity: isGameWon ? 1 : 0, color: themeColor, transition: 'opacity 0.5s' }">조명 장치가 작동합니다!</h2>
         
         <div v-if="isGameWon" class="victory-image-container">
-            <img :src="patternType === 'A' ? '../light_line1.png' : '../light_line2.png'" class="victory-image">
+            <img :src="patternType === 'A' ? './light_line1.png' : './light_line2.png'" class="victory-image">
         </div>
 
         <div v-for="(row, r) in grid" :key="'r-'+r">
@@ -131,6 +131,7 @@ export default {
         </div>
     </div>`
 };
+
 
 
 
