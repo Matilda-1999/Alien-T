@@ -27,7 +27,11 @@ export default {
         const patternA = [[0, 0, "S", 3], [0, 1, "L", 3], [0, 3, "L", 2], [0, 4, "L", 3], [0, 5, "P", 3, 1], [0, 6, "I", 1], [0, 7, "I", 1], [0, 8, "L", 3], [1, 1, "I", 0], [1, 3, "I", 0], [1, 4, "L", 1], [1, 5, "L", 3], [1, 6, "L", 2], [1, 7, "L", 3], [1, 8, "L", 1], [1, 9, "I", 1], [1, 10, "L", 3], [2, 1, "L", 1], [2, 2, "I", 1], [2, 3, "L", 0], [2, 4, "P", 3, 0], [2, 5, "L", 0], [2, 6, "I", 0], [2, 7, "L", 1], [2, 8, "I", 1], [2, 9, "I", 1], [2, 10, "L", 0], [3, 6, "L", 1], [3, 7, "P", 1, 2], [3, 8, "L", 2], [3, 9, "L", 3], [3, 10, "L", 2], [3, 11, "E", 1], [4, 2, "P", 3, 2], [4, 3, "L", 3], [4, 5, "L", 2], [4, 6, "I", 1], [4, 7, "I", 1], [4, 8, "L", 0], [4, 9, "I", 0], [4, 10, "I", 0], [5, 3, "L", 1], [5, 4, "I", 1], [5, 5, "L", 0], [5, 8, "P", 0, 1], [5, 9, "I", 0], [5, 10, "I", 0], [6, 3, "L", 2], [6, 4, "P", 1, 0], [6, 8, "I", 0], [6, 9, "L", 1], [6, 10, "L", 0], [7, 3, "L", 1], [7, 4, "I", 1], [7, 5, "I", 1], [7, 6, "I", 1], [7, 7, "I", 1], [7, 8, "L", 0]];
         const patternB = [[0, 0, "S", 3], [0, 1, "L", 3], [0, 5, "P", 3, 0], [0, 6, "L", 3], [1, 1, "I", 0], [1, 2, "L", 2], [1, 3, "I", 1], [1, 4, "I", 1], [1, 5, "I", 1], [1, 6, "L", 0], [2, 1, "L", 1], [2, 2, "L", 0], [2, 3, "P", 0, 1], [3, 3, "I", 0], [3, 5, "L", 2], [3, 6, "I", 1], [3, 7, "L", 3], [3, 8, "L", 2], [3, 9, "I", 1], [3, 10, "L", 3], [4, 3, "L", 1], [4, 4, "L", 3], [4, 5, "P", 2, 2], [4, 7, "I", 0], [4, 8, "I", 0], [4, 9, "P", 0, 2], [4, 10, "I", 0], [5, 3, "L", 2], [5, 4, "L", 0], [5, 6, "L", 2], [5, 7, "L", 0], [5, 8, "I", 0], [5, 9, "I", 0], [5, 10, "I", 0], [5, 11, "E", 2], [6, 3, "I", 0], [6, 5, "L", 2], [6, 6, "L", 0], [6, 7, "P", 0, 1], [6, 8, "L", 1], [6, 9, "L", 0], [6, 10, "I", 0], [6, 11, "I", 0], [7, 0, "P", 3, 0], [7, 1, "I", 1], [7, 2, "I", 1], [7, 3, "L", 0], [7, 5, "L", 1], [7, 6, "I", 1], [7, 7, "L", 0], [7, 10, "L", 1], [7, 11, "L", 0]];
         
-        const selectedPattern = Math.random() < 0.5 ? patternA : patternB;
+        // 패턴 선택 로직
+        const isPatternASelected = Math.random() < 0.5;
+        const selectedPattern = isPatternASelected ? patternA : patternB;
+        const patternType = isPatternASelected ? 'A' : 'B'; // 패턴 타입을 저장
+        
         const grid = ref([]);
         const poweredTiles = ref(new Set()); 
 
@@ -105,26 +109,29 @@ export default {
     template: `
     <div class="d-flex flex-column align-items-center">
         <h2 :style="{ opacity: isGameWon ? 1 : 0, color: themeColor, transition: 'opacity 0.5s' }">조명 장치가 작동합니다!</h2>
-        <div v-for="(row, r) in grid" :key="'row-'+r">
-            <div style="display: inline-block" v-for="(tile, c) in row" :key="'tile-'+r+'-'+c">
+        
+        <div v-if="isGameWon" class="victory-image-container">
+            <img :src="patternType === 'A' ? '../light_line1.png' : '../light_line2.png'" class="victory-image">
+        </div>
+
+        <div v-for="(row, r) in grid" :key="'r-'+r">
+            <div style="display: inline-block" v-for="(tile, c) in row" :key="'c-'+r+'-'+c">
                 <div :class="['tile', tile[2] === 0 ? 'tile-immovable' : 'tile-movable']" 
                      :style="{ 
                         transform: 'rotate(' + tile[1] * 90 + 'deg)', 
                         boxShadow: getColour(r, c) ? '0 0 15px '+themeColor : 'none', 
                         border: getColour(r, c) ? '2px solid '+themeColor : '1px solid #4a4d44' 
                      }" @click="rotate(tile, r, c)">
-                    
                     <div :style="{ backgroundColor: getColour(r, c) || '#d4af37' }" :class="getNodeClass(tile[0])"></div>
                     <div v-if="tile[0] == 'L'" :style="{ backgroundColor: getColour(r, c) || '#d4af37' }" :class="getNodeClass(tile[0],true)"></div>
-                    
                     <div v-if="tile[0] !== 'I'" class="circle-node" :style="{ backgroundColor: getColour(r, c) || '#d4af37', transform: 'rotate(' + tile[1] * -90 + 'deg)' }"></div>
-                    
                     <div v-if="tile[0] == 'P'" class="portalsymbol active" :style="{ transform: 'rotate(' + tile[1] * -90 + 'deg)' }">{{tile[4] + 1}}</div>
                 </div>
             </div>
         </div>
     </div>`
 };
+
 
 
 
