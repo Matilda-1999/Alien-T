@@ -1,4 +1,4 @@
-//0203-15
+//0203-16
 
 import { ref, computed, watch } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 
@@ -105,8 +105,8 @@ export default {
     template: `
     <div class="d-flex flex-column align-items-center">
         <h2 :style="{ opacity: isGameWon ? 1 : 0, color: themeColor, transition: 'opacity 0.5s' }">무대 장치 가동 완료!</h2>
-        <div v-for="(row, r) in grid">
-            <div style="display: inline-block" v-for="(tile, c) in row">
+        <div v-for="(row, r) in grid" :key="'row-'+r">
+            <div style="display: inline-block" v-for="(tile, c) in row" :key="'tile-'+r+'-'+c">
                 <div :class="['tile', tile[2] === 0 ? 'tile-immovable' : 'tile-movable']" 
                      :style="{ 
                         transform: 'rotate(' + tile[1] * 90 + 'deg)', 
@@ -123,4 +123,5 @@ export default {
     </div>`
 }
 }
+
 
