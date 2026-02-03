@@ -155,12 +155,14 @@ body {
 
 .victory-text {
     color: #ffffff;      /* 흰색 글씨 */
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     line-height: 1.8;
-    margin-bottom: 20px;
-    word-break: keep-all; /* 한글 단어 단위 줄바꿈으로 가독성 향상 */
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); /* 글자 가독성을 위한 미세한 그림자 */
-    max-width: 800px;
+    margin: 0 auto 25px auto; /* 좌우 마진 auto로 컨테이너 내 중앙 정렬 */
+    text-align: center; 
+    word-break: keep-all; 
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    max-width: 90%;      
+    width: fit-content; 
 }
 
 .victory-image {
@@ -210,6 +212,7 @@ body {
 .modal-content { background-color: #1a1c16; color: #e0d7c6; border: 1px solid #4a4d44; }
 .modal-title { font-family: "Grandiflora One"; }
 .modal-body { font-family: "Noto Serif KR"; line-height: 1.6; }
+
 
 
 
