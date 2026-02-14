@@ -1,9 +1,10 @@
-//0203-17
+//0214
 
 import { ref, computed, watch } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 
 export default {
     setup() {
+        console.log("Current Mode:", showAnswer)
         const queryString = window.location.search;
         const params = new URLSearchParams(queryString);
         const showAnswer = params.get('topsecret') === 'true';
@@ -136,6 +137,7 @@ export default {
         </div>
     </div>`
 };
+
 
 
 
